@@ -64,28 +64,32 @@ jobs:
   deploy:
     name: Deploy to AWS
     runs-on: ubuntu-latest
-    needs: [backend, frontend]  # フロントエンドも待つ
-    # mainブランチかつプッシュ時のみ実行
+    needs: [backend, frontend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Setup AWS CLI
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-1
+      # AWS承認後に有効化
+      # - name: Setup AWS CLI
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ap-northeast-1
           
-      - name: Setup SAM CLI
-        uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
+      # - name: Setup SAM CLI
+      #   uses: aws-actions/setup-sam@v2
+      #   with:
+      #     use-installer: true
           
-      - name: Build and Deploy
-        working-directory: ./backend
-        run: |
-          sam build
-          sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+      # - name: Build and Deploy
+      #   working-directory: ./backend
+      #   run: |
+      #     sam build
+      #     sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+      
+      # 現在はプレースホルダー
+      - name: Deploy placeholder
+        run: echo "AWS承認後にデプロイ実装予定"
