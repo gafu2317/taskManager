@@ -34,11 +34,37 @@ jobs:
         working-directory: ./backend
         run: go build -v ./...
 
+  # フロントエンドテスト・ビルド
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+        
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm run test
+        
+      - name: Build application
+        working-directory: ./frontend
+        run: npm run build
+
   # デプロイ（本番環境）
   deploy:
     name: Deploy to AWS
     runs-on: ubuntu-latest
-    needs: backend
+    needs: [backend, frontend]  # フロントエンドも待つ
     # mainブランチかつプッシュ時のみ実行
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
