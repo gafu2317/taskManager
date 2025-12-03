@@ -13,6 +13,7 @@ import (
 	// "my-webapp-backend/repository"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 )
 
 //一時的なスライス
@@ -175,6 +176,12 @@ func main() {
 	*/
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3001"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Content-Type"},
+		AllowCredentials: true,
+	}))
 	r.GET("/health", healthCheck)
 	r.POST("/tasks", createTask)           // メモリ版に戻す
 	r.GET("/tasks", getTasks)              // メモリ版に戻す  
