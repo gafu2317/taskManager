@@ -4,6 +4,7 @@ import { useState, useEffect} from "react";
 import { Task } from "../types/task";
 import { getTasks } from "../lib/api";
 import TaskForm from "@/components/features/tasks/TaskForm";
+import TaskBubbleView from "@/components/features/tasks/TaskBubbleView";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -40,32 +41,7 @@ export default function Home() {
     <>
       <h1 className="text-2xl font-bold mb-4">Task List</h1>
       <TaskForm onTaskCreated={handleTaskCreated} />
-      {loading ? (
-        <p>Loading tasks...</p>
-      ) : tasks.length === 0 ? (
-        <p>No tasks available.</p>
-      ) : (
-        <ul>
-          {tasks.map((task) => (
-            <li key={task.id} className="mb-2 p-2 border rounded">
-              <h2 className="text-xl font-semibold">{task.title}</h2>
-              <p>{task.description}</p>
-              <p>
-                <strong>Completed:</strong> {task.completed ? "Yes" : "No"}
-              </p>
-              <p>
-                <strong>Importance:</strong> {task.importance}
-              </p>
-              <p>
-                <strong>Cost:</strong> ${task.cost}
-              </p>
-              <p>
-                <strong>Tags:</strong> {task.tags.join(", ")}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}    
+      <TaskBubbleView tasks={tasks} loading={loading} />
     </>
   );
 }
