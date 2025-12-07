@@ -8,9 +8,11 @@ interface PhysicsBubbleProps {
   containerHeight: number;
   otherBubbles?: {x: number, y: number, radius: number}[];
   onPositionUpdate?: (id: string, position:{x: number, y: number}) => void;
+  isPaused: boolean;
+  onBubbleClick: (taskId: string) => void;
 }
 
-const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate, otherBubbles}:PhysicsBubbleProps) => {
+const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate, otherBubbles, isPaused, onBubbleClick}:PhysicsBubbleProps) => {
   const [position, setPosition] = React.useState<{x: number, y: number}>({x: Math.random() * (containerWidth-90), y: Math.random() * (containerHeight-90)}); 
   
   const velocityRef = useRef({
@@ -20,16 +22,24 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
   
   const otherBubblesRef = useRef(otherBubbles);
   otherBubblesRef.current = otherBubbles;
+  
+  const isPausedRef = useRef(isPaused);
+  isPausedRef.current = isPaused;
   useEffect(() => {
     let animattionId: number;
 
     const animate = () => {
+      // 停止中は位置更新をスキップ
+      if (isPausedRef.current) {
+        animattionId = requestAnimationFrame(animate);
+        return;
+      }
+
       setPosition((prev) => {
         let radius = task.importance * 6 + 15; // 半径
         let newX = prev.x + velocityRef.current.x;
         let newY = prev.y + velocityRef.current.y;
         let collisionDetected = false;
-
         
         // 他の風船との衝突判定（壁より先に処理）
         const currentOtherBubbles = otherBubblesRef.current;
@@ -77,8 +87,8 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
         return { x: newX, y: newY };
       });
 
-      // 位置更新を非同期で実行
-      if(onPositionUpdate) {
+      // 位置更新を毎フレームではなく、一定間隔で実行
+      if(onPositionUpdate && Math.random() < 0.1) { // 10%の確率で更新
         setTimeout(() => {
           setPosition((current) => {
             onPositionUpdate(task.id, current);
@@ -89,13 +99,14 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
 
       animattionId = requestAnimationFrame(animate);
     };
-    animate();
+    
+    animate(); // 常にアニメーションループを開始
     return () => cancelAnimationFrame(animattionId);
   }, []);
 
   return (
   <>
-    <TaskBubble task={task} x={position.x} y={position.y}></TaskBubble>
+    <TaskBubble task={task} x={position.x} y={position.y} onBubbleClick={onBubbleClick}></TaskBubble>
   </>
   )
 }

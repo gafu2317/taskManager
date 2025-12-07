@@ -9,6 +9,13 @@ interface TaskBubbleViewProps {
 
 const TaskBubbleView = ({tasks, loading}: TaskBubbleViewProps) => {
   const [bubblePositions, setBubblePositions] = useState<Record<string, {x: number, y: number, radius: number}>>({});
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+
+  const handleBubbleClick = (taskId: string) => {
+    setSelectedTaskId(taskId === selectedTaskId ? null : taskId);
+    setIsPaused(taskId !== selectedTaskId ? true : false);
+  };
   
 
   const handlePositionUpdate = (id: string, position: {x: number, y: number}) => {
@@ -45,6 +52,8 @@ const TaskBubbleView = ({tasks, loading}: TaskBubbleViewProps) => {
             <PhysicsBubble
               key={task.id}
               task={task} 
+              isPaused={isPaused && selectedTaskId === task.id}
+              onBubbleClick={() => handleBubbleClick(task.id)}
               containerWidth={containerWidth}
               containerHeight={containerHeight}
               otherBubbles={getOtherBubbles(task.id)}

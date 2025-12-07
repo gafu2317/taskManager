@@ -6,10 +6,10 @@ interface TaskBubbleProps {
   task: Task;
   x: number;
   y: number;
-
+  onBubbleClick: (taskId: string) => void;
 }
 
-const TaskBubble = ({ task, x, y  }: TaskBubbleProps) => {
+const TaskBubble = ({ task, x, y, onBubbleClick  }: TaskBubbleProps) => {
   const size = task.importance * 12 + 30; // 重要度に基づくサイズ調整（42-90px）
   // コスト別色設定
   const getCostColor = (cost: number): string => {
@@ -43,7 +43,12 @@ const TaskBubble = ({ task, x, y  }: TaskBubbleProps) => {
         textAlign: 'center',
         overflow: 'hidden',
         padding: '2px'
-      }}>
+      }}
+      onClick={(e) => {
+        e.preventDefault();
+        setTimeout(() => onBubbleClick(task.id), 0);
+      }}
+      >
         {task.title}
       </div>
     </>
