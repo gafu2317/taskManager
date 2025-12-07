@@ -15,10 +15,17 @@ interface PhysicsBubbleProps {
 const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate, otherBubbles, isPaused, onBubbleClick}:PhysicsBubbleProps) => {
   const [position, setPosition] = React.useState<{x: number, y: number}>({x: Math.random() * (containerWidth-90), y: Math.random() * (containerHeight-90)}); 
   
-  const velocityRef = useRef({
-    x: (Math.random() - 0.5) * 4,
-    y: (Math.random() - 0.5) * 4
-  });
+  const velocityRef = useRef((() => {
+    const vx = (Math.random() - 0.5) * 3;
+    const vy = (Math.random() - 0.5) * 3;
+
+    // 最低速度2を保証
+    return {
+      x: Math.abs(vx) < 2 ? (vx >= 0 ? 1 : -1) : vx,
+      y: Math.abs(vy) < 2 ? (vy >= 0 ? 1 : -1) : vy
+    };
+  })());
+
   
   const otherBubblesRef = useRef(otherBubbles);
   otherBubblesRef.current = otherBubbles;
@@ -29,8 +36,17 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
     let animattionId: number;
 
     const animate = () => {
-      // 停止中は位置更新をスキップ
+      // 停止中は位置更新をスキップ、ただし位置報告は継続
       if (isPausedRef.current) {
+        // 停止中でも現在位置を報告
+        if(onPositionUpdate) {
+          setTimeout(() => {
+            setPosition((current) => {
+              onPositionUpdate(task.id, current);
+              return current;
+            });
+          }, 0);
+        }
         animattionId = requestAnimationFrame(animate);
         return;
       }
@@ -43,7 +59,6 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
         
         // 他の風船との衝突判定（壁より先に処理）
         const currentOtherBubbles = otherBubblesRef.current;
-        console.log(`Bubble ${task.id}: otherBubbles count = ${currentOtherBubbles?.length || 0}`);
         
         if(currentOtherBubbles && currentOtherBubbles.length > 0) {
           for(const bubble of currentOtherBubbles) {
@@ -53,7 +68,6 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
             const minDistance = radius + bubble.radius;
             
             if(distance < minDistance && distance > 0) {
-              console.log(`COLLISION! distance=${distance}, minDistance=${minDistance}`);
               
               // 衝突を避けるために位置を調整
               const overlap = minDistance - distance;
@@ -87,8 +101,8 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
         return { x: newX, y: newY };
       });
 
-      // 位置更新を毎フレームではなく、一定間隔で実行
-      if(onPositionUpdate && Math.random() < 0.1) { // 10%の確率で更新
+      // 毎フレーム位置更新を報告
+      if(onPositionUpdate) {
         setTimeout(() => {
           setPosition((current) => {
             onPositionUpdate(task.id, current);

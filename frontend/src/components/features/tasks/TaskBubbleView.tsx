@@ -14,7 +14,7 @@ const TaskBubbleView = ({tasks, loading}: TaskBubbleViewProps) => {
 
   const handleBubbleClick = (taskId: string) => {
     setSelectedTaskId(taskId === selectedTaskId ? null : taskId);
-    setIsPaused(taskId !== selectedTaskId ? true : false);
+    setIsPaused(!isPaused); // 全バブル一括で停止/再開
   };
   
 
@@ -52,7 +52,7 @@ const TaskBubbleView = ({tasks, loading}: TaskBubbleViewProps) => {
             <PhysicsBubble
               key={task.id}
               task={task} 
-              isPaused={isPaused && selectedTaskId === task.id}
+              isPaused={isPaused}
               onBubbleClick={() => handleBubbleClick(task.id)}
               containerWidth={containerWidth}
               containerHeight={containerHeight}
