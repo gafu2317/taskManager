@@ -33,7 +33,16 @@ const TaskBubble = ({ task, x, y  }: TaskBubbleProps) => {
         width: size,
         height: size,
         backgroundColor: costColor,
-        borderRadius: '50%'
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: Math.min(size / 8, 12),
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+        overflow: 'hidden',
+        padding: '2px'
       }}>
         {task.title}
       </div>
