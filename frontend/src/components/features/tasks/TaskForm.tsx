@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import { Task } from '../../../types/task'
 import { createTask } from '../../../lib/api'
-import { getCostColor, getImportanceButtonSize } from '../../../utils/taskUtils'
+import { getCostColor, getCostButtonSize } from '../../../utils/taskUtils'
 
 interface TaskFormProps {
   onTaskCreated: () => void;
@@ -89,7 +89,7 @@ const TaskForm = ( props:TaskFormProps) => {
           <label className="block mb-2 font-medium">Cost</label>
           <div className="flex gap-2 items-center">
             {[1, 2, 3, 4, 5].map((level) => {
-              const sizeClass = getImportanceButtonSize(level);
+              const sizeClass = getCostButtonSize(level);
               return (
                 <button
                   key={level}
@@ -97,8 +97,8 @@ const TaskForm = ( props:TaskFormProps) => {
                   onClick={() => setCost(level)}
                   className={`${sizeClass} rounded-full font-semibold transition-all text-black ${
                     cost === level
-                      ? 'bg-red-500 border-3 border-red-700 shadow-md transform scale-105'
-                      : 'bg-red-400 border-2 border-red-500 hover:border-red-600 hover:shadow-sm'
+                      ? 'bg-gray-300 border-3 border-gray-600 shadow-md transform scale-105'
+                      : 'bg-white border-2 border-gray-400 hover:border-gray-500 hover:shadow-sm'
                   }`}
                 >
                   {level}

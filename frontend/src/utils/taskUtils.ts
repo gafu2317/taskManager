@@ -17,8 +17,13 @@ export const getCostColor = (cost: number): string => {
   return colors[cost as keyof typeof colors] || colors[1];
 };
 
-export const getImportanceButtonSize = (importance: number): string => {
-  const baseSize = 8; // 基本8 (32px)
-  const size = baseSize + importance * 2; // 10, 12, 14, 16, 18
-  return `w-${size} h-${size}`;
+export const getCostButtonSize = (cost: number): string => {
+  const sizeMap = {
+    1: 'w-8 h-8',   // 32px
+    2: 'w-9 h-9',   // 36px 
+    3: 'w-10 h-10', // 40px
+    4: 'w-11 h-11', // 44px
+    5: 'w-12 h-12'  // 48px
+  };
+  return sizeMap[cost as keyof typeof sizeMap] || sizeMap[1];
 };
