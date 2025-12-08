@@ -7,9 +7,10 @@ interface TaskBubbleViewProps {
   loading: boolean;
   containerWidth: number;
   containerHeight: number;
+  onTaskSelect: (taskId: string) => void;
 }
 
-const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight}: TaskBubbleViewProps) => {
+const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTaskSelect}: TaskBubbleViewProps) => {
   const [bubblePositions, setBubblePositions] = useState<Record<string, {x: number, y: number, radius: number}>>({});
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -17,6 +18,7 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight}: TaskB
   const handleBubbleClick = (taskId: string) => {
     setSelectedTaskId(taskId === selectedTaskId ? null : taskId);
     setIsPaused(!isPaused); // 全バブル一括で停止/再開
+    onTaskSelect(taskId); // 上位コンポーネントに伝える
   };
   
 

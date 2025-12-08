@@ -10,6 +10,7 @@ export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [containerSize, setContainerSize] = useState({ width: 600, height: 350 });
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const fetchTasks = async () => {
@@ -33,7 +34,7 @@ export default function Home() {
         const rect = bubbleAreaRef.current.getBoundingClientRect();
         setContainerSize({ 
           width: Math.floor(rect.width * 0.9), // 90%を使用（余白確保）
-          height: Math.floor(rect.height * 0.9) 
+          height: Math.floor(rect.height * 0.7) 
         });
       }
     };
@@ -60,6 +61,12 @@ export default function Home() {
     }
   };
 
+  const handleTaskSelect = (taskId: string) => {
+    setSelectedTaskId(taskId === selectedTaskId ? null : taskId);
+  };
+
+  const selectedTask = tasks.find(task => task.id === selectedTaskId);
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* 左列 - タスク作成 (20%) */}
@@ -73,48 +80,47 @@ export default function Home() {
         <h2 className="text-lg font-semibold mb-6 text-gray-800">Task Bubbles</h2>
         <div 
           ref={bubbleAreaRef}
-          className="w-full h-full flex justify-center items-center"
+          className="w-full h-full flex justify-center items-start"
         >
           <TaskBubbleView 
             tasks={tasks} 
             loading={loading}
             containerWidth={containerSize.width}
             containerHeight={containerSize.height}
+            onTaskSelect={handleTaskSelect}
           />
         </div>
       </div>
 
-      {/* 右列 - ポモドーロタイマーなど (20%) */}
+      {/* 右列 - タスク詳細 (20%) */}
       <div className="w-1/5 bg-white border-l border-gray-200 p-6">
-        <h2 className="text-lg font-semibold mb-6 text-gray-800">Tools</h2>
-        <div className="space-y-4">
-          {/* ポモドーロタイマー */}
-          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-            <h3 className="font-medium text-red-800 mb-2">🍅 Pomodoro Timer</h3>
-            <p className="text-sm text-red-600 mb-2">25:00</p>
-            <button className="w-full bg-red-500 text-white py-2 px-3 rounded text-sm hover:bg-red-600">
-              Start
-            </button>
-          </div>
-
-          {/* 統計情報 */}
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <h3 className="font-medium text-blue-800 mb-2">📊 Statistics</h3>
-            <div className="text-sm text-blue-600 space-y-1">
-              <p>Total tasks: {tasks.length}</p>
-              <p>Completed: {tasks.filter(task => task.completed).length}</p>
-              <p>Pending: {tasks.filter(task => !task.completed).length}</p>
+        <h2 className="text-lg font-semibold mb-6 text-gray-800">Task Detail</h2>
+        {selectedTask ? (
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Title</h3>
+              <p className="text-gray-600">{selectedTask.title}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Description</h3>
+              <p className="text-gray-600">{selectedTask.description || "No description"}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Importance</h3>
+              <p className="text-gray-600">{selectedTask.importance}/5</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Cost</h3>
+              <p className="text-gray-600">{selectedTask.cost}/5</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-700 mb-2">Status</h3>
+              <p className="text-gray-600">{selectedTask.completed ? "Completed" : "Pending"}</p>
             </div>
           </div>
-
-          {/* 設定 */}
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h3 className="font-medium text-gray-800 mb-2">⚙️ Settings</h3>
-            <button className="w-full bg-gray-500 text-white py-2 px-3 rounded text-sm hover:bg-gray-600">
-              Preferences
-            </button>
-          </div>
-        </div>
+        ) : (
+          <p className="text-gray-500">Click a task bubble to view details</p>
+        )}
       </div>
     </div>
   );

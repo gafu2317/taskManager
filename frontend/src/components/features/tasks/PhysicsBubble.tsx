@@ -41,15 +41,6 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
     const animate = () => {
       // 停止中は位置更新をスキップ、ただし位置報告は継続
       if (isPausedRef.current) {
-        // 停止中でも現在位置を報告（useRefで安全に）
-        if(onPositionUpdateRef.current) {
-          queueMicrotask(() => {
-            setPosition((current) => {
-              onPositionUpdateRef.current?.(task.id, current);
-              return current;
-            });
-          });
-        }
         animattionId = requestAnimationFrame(animate);
         return;
       }
@@ -101,18 +92,17 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
           newY = Math.max(radius, Math.min(newY, containerHeight - radius));
         }
 
-        return { x: newX, y: newY };
-      });
-
-      // 毎フレーム位置更新を報告（useRefで安全に）
-      if(onPositionUpdateRef.current) {
-        queueMicrotask(() => {
-          setPosition((current) => {
-            onPositionUpdateRef.current?.(task.id, current);
-            return current;
+        const newPosition = { x: newX, y: newY };
+        
+        // 位置更新を非同期で報告
+        if(onPositionUpdateRef.current) {
+          queueMicrotask(() => {
+            onPositionUpdateRef.current?.(task.id, newPosition);
           });
-        });
-      }
+        }
+
+        return newPosition;
+      });
 
       animattionId = requestAnimationFrame(animate);
     };
