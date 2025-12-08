@@ -1,6 +1,7 @@
 import React, {useEffect, useState, useRef} from 'react'
 import { Task } from '../../../types/task'
-import TaskBubble from './TaskBubble';
+import TaskBubble from './TaskBubble'
+import { getTaskBubbleRadius } from '../../../utils/taskUtils'
 
 interface PhysicsBubbleProps {
   task: Task; 
@@ -46,7 +47,7 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
       }
 
       setPosition((prev) => {
-        let radius = task.importance * 6 + 15; // 半径
+        let radius = getTaskBubbleRadius(task.importance);
         let newX = prev.x + velocityRef.current.x;
         let newY = prev.y + velocityRef.current.y;
         let collisionDetected = false;

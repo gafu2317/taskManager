@@ -1,5 +1,6 @@
 import React from 'react'
 import { Task } from '../../../types/task'
+import { getTaskBubbleSize } from '../../../utils/taskUtils'
 
 
 interface TaskBubbleProps {
@@ -10,7 +11,7 @@ interface TaskBubbleProps {
 }
 
 const TaskBubble = ({ task, x, y, onBubbleClick  }: TaskBubbleProps) => {
-  const size = task.importance * 12 + 30; // 重要度に基づくサイズ調整（42-90px）
+  const size = getTaskBubbleSize(task.importance);
   // コスト別色設定
   const getCostColor = (cost: number): string => {
     const colors = {

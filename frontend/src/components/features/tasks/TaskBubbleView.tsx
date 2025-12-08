@@ -1,6 +1,7 @@
 import React, {useState} from 'react'
 import { Task } from '../../../types/task'
-import PhysicsBubble from './PhysicsBubble';
+import PhysicsBubble from './PhysicsBubble'
+import { getTaskBubbleRadius } from '../../../utils/taskUtils'
 
 interface TaskBubbleViewProps {
   tasks: Task[];
@@ -24,7 +25,7 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
 
   const handlePositionUpdate = (id: string, position: {x: number, y: number}) => {
     const task = tasks.find(task => task.id === id);
-    const radius = task ? task.importance * 6 + 15 : 21;
+    const radius = task ? getTaskBubbleRadius(task.importance) : 21;
     setBubblePositions((prev) => ({
       ...prev,
       [id]: { x: position.x, y: position.y, radius }
