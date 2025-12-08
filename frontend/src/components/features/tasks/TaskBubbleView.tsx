@@ -5,9 +5,11 @@ import PhysicsBubble from './PhysicsBubble';
 interface TaskBubbleViewProps {
   tasks: Task[];
   loading: boolean;
+  containerWidth: number;
+  containerHeight: number;
 }
 
-const TaskBubbleView = ({tasks, loading}: TaskBubbleViewProps) => {
+const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight}: TaskBubbleViewProps) => {
   const [bubblePositions, setBubblePositions] = useState<Record<string, {x: number, y: number, radius: number}>>({});
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -32,11 +34,10 @@ const TaskBubbleView = ({tasks, loading}: TaskBubbleViewProps) => {
       .map(([_, pos]) => pos);
     return others;
   };
-  const containerWidth:number = 600;
-  const containerHeight:number = 400;
+  // containerWidth と containerHeight は props から受け取る
   return (
     <>
-      <div className="relative w-full h-64 border-3 border-brack rounded-lgoverflow-hidden bg-gradient-to-b from-blue-50 to-blue-100"
+      <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden bg-gradient-to-b from-blue-50 to-blue-100"
         style={{ width: containerWidth, height: containerHeight }}>
         {loading ? (
           <div className="flex justify-center items-center h-full">

@@ -32,20 +32,23 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
   
   const isPausedRef = useRef(isPaused);
   isPausedRef.current = isPaused;
+  
+  const onPositionUpdateRef = useRef(onPositionUpdate);
+  onPositionUpdateRef.current = onPositionUpdate;
   useEffect(() => {
     let animattionId: number;
 
     const animate = () => {
       // 停止中は位置更新をスキップ、ただし位置報告は継続
       if (isPausedRef.current) {
-        // 停止中でも現在位置を報告
-        if(onPositionUpdate) {
-          setTimeout(() => {
+        // 停止中でも現在位置を報告（useRefで安全に）
+        if(onPositionUpdateRef.current) {
+          queueMicrotask(() => {
             setPosition((current) => {
-              onPositionUpdate(task.id, current);
+              onPositionUpdateRef.current?.(task.id, current);
               return current;
             });
-          }, 0);
+          });
         }
         animattionId = requestAnimationFrame(animate);
         return;
@@ -101,14 +104,14 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
         return { x: newX, y: newY };
       });
 
-      // 毎フレーム位置更新を報告
-      if(onPositionUpdate) {
-        setTimeout(() => {
+      // 毎フレーム位置更新を報告（useRefで安全に）
+      if(onPositionUpdateRef.current) {
+        queueMicrotask(() => {
           setPosition((current) => {
-            onPositionUpdate(task.id, current);
+            onPositionUpdateRef.current?.(task.id, current);
             return current;
           });
-        }, 0);
+        });
       }
 
       animattionId = requestAnimationFrame(animate);
