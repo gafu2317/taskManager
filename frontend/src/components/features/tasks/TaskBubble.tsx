@@ -79,7 +79,9 @@ const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete }: TaskBubblePro
         fontWeight: 'bold',
         textAlign: 'center',
         overflow: 'hidden',
-        padding: '2px'
+        padding: '2px',
+        cursor: 'pointer',
+        userSelect: 'none'
       }}
       onClick={(e) => {
         e.preventDefault();
