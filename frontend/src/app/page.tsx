@@ -16,7 +16,7 @@ export default function Home() {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const fetchedTasks = await getTasks();
+        const fetchedTasks = await getTasks({completed: false});
         setTasks(fetchedTasks);
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
@@ -53,7 +53,7 @@ export default function Home() {
   const handleTaskCreated = async () => {
     setLoading(true);
     try {
-      const fetchedTasks = await getTasks();
+      const fetchedTasks = await getTasks({completed: false});
       setTasks(fetchedTasks);
     } catch (error) {
       console.error("Failed to fetch tasks:", error);
