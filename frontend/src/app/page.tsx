@@ -124,6 +124,7 @@ export default function Home() {
             containerHeight={containerSize.height}
             onTaskSelect={handleTaskSelect}
             onTaskComplete={handleTaskComplete}
+            selectedTaskId={selectedTaskId}
           />
         </div>
       </div>

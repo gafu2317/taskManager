@@ -74,7 +74,7 @@ const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete }: TaskBubblePro
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: Math.min(size / 8, 12),
+        fontSize: Math.min(size / 4, 16),
         color: textColor,
         fontWeight: 'bold',
         textAlign: 'center',

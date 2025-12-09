@@ -10,21 +10,15 @@ interface TaskBubbleViewProps {
   containerHeight: number;
   onTaskSelect: (taskId: string) => void;
   onTaskComplete: (taskId: string) => void;
+  selectedTaskId: string | null;
 }
 
-const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTaskSelect, onTaskComplete}: TaskBubbleViewProps) => {
+const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTaskSelect, onTaskComplete, selectedTaskId}: TaskBubbleViewProps) => {
   const [bubblePositions, setBubblePositions] = useState<Record<string, {x: number, y: number, radius: number}>>({});
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
   const handleBubbleClick = (taskId: string) => {
-    if (taskId === selectedTaskId) {
-      // 同じタスクをクリック → 選択解除 → 動き出す
-      setSelectedTaskId(null);
-    } else {
-      // 違うタスクをクリック → 選択変更 → 停止のまま
-      setSelectedTaskId(taskId);
-    }
-    onTaskSelect(taskId); // 上位コンポーネントに伝える
+    // 上位コンポーネント（page.tsx）の状態管理に委ねる
+    onTaskSelect(taskId);
   };
   
 
@@ -50,7 +44,6 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
         onClick={(e) => {
           e.stopPropagation();
           // バブルエリア内の空白をクリック → 選択解除
-          setSelectedTaskId(null);
           onTaskSelect(''); // 空文字で選択解除を通知
         }}>
         {loading ? (

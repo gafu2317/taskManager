@@ -1,5 +1,5 @@
 export const getTaskBubbleSize = (importance: number): number => {
-  return importance * importance * 8 + 40;
+  return importance * importance * 4 + 80;
 };
 
 export const getTaskBubbleRadius = (importance: number): number => {
