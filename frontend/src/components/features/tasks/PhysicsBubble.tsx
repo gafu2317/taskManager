@@ -15,7 +15,13 @@ interface PhysicsBubbleProps {
 }
 
 const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate, otherBubbles, selectedTaskId, onBubbleClick, onTaskComplete}:PhysicsBubbleProps) => {
-  const [position, setPosition] = React.useState<{x: number, y: number}>({x: Math.random() * (containerWidth-90), y: Math.random() * (containerHeight-90)}); 
+  const [position, setPosition] = React.useState<{x: number, y: number}>(() => {
+    const radius = getTaskBubbleRadius(task.importance);
+    return {
+      x: radius + Math.random() * (containerWidth - 2 * radius), 
+      y: radius + Math.random() * (containerHeight - 2 * radius)
+    };
+  }); 
   
   const velocityRef = useRef((() => {
     const vx = (Math.random() - 0.5) * 2;
