@@ -7,9 +7,18 @@ interface TasksResponse {
     count: number;
   }
 
-export async function getTasks(): Promise<Task[]> {
+interface GetTasksOptions {
+  completed?: boolean;
+}
+
+export async function getTasks(options: GetTasksOptions = {}): Promise<Task[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/tasks`);
+    let url = `${API_BASE_URL}/tasks`;
+    if (options.completed !== undefined) {
+      url += `?completed=${options.completed}`;
+    }
+    
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error('Failed to fetch tasks');
