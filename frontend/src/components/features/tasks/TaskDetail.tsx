@@ -9,38 +9,44 @@ interface TaskDetailProps {
 const TaskDetail = ({selectedTask, onTaskDelete}: TaskDetailProps) => {
   return (
   <>
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div>
-        <h3 className="font-semibold text-gray-700 mb-2">タイトル</h3>
-        <p className="text-gray-600">{selectedTask.title}</p>
+        <h3 className="font-medium text-gray-600 text-sm mb-1">タイトル</h3>
+        <p className="text-gray-800 text-sm">{selectedTask.title}</p>
       </div>
+      
       <div>
-        <h3 className="font-semibold text-gray-700 mb-2">説明</h3>
-        <p className="text-gray-600">{selectedTask.description || "説明なし"}</p>
+        <h3 className="font-medium text-gray-600 text-sm mb-1">説明</h3>
+        <p className="text-gray-800 text-sm">{selectedTask.description || "説明なし"}</p>
       </div>
-      <div>
-        <h3 className="font-semibold text-gray-700 mb-2">重要度</h3>
-        <p className="text-gray-600">{selectedTask.importance}/5</p>
+      
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <span className="text-xs text-gray-500">重要度: </span>
+          <span className="text-sm font-medium">{selectedTask.importance}/5</span>
+        </div>
+        <div>
+          <span className="text-xs text-gray-500">コスト: </span>
+          <span className="text-sm font-medium">{selectedTask.cost}/5</span>
+        </div>
       </div>
+      
       <div>
-        <h3 className="font-semibold text-gray-700 mb-2">コスト</h3>
-        <p className="text-gray-600">{selectedTask.cost}/5</p>
+        <span className="text-xs text-gray-500">ステータス: </span>
+        <span className="text-sm font-medium">{selectedTask.completed ? "完了" : "未完了"}</span>
       </div>
+      
       <div>
-        <h3 className="font-semibold text-gray-700 mb-2">ステータス</h3>
-        <p className="text-gray-600">{selectedTask.completed ? "完了" : "未完了"}</p>
-      </div>
-      <div>
-        <h3 className="font-semibold text-gray-700 mb-2">タグ</h3>
-        <div className="flex flex-wrap gap-2">
+        <h3 className="font-medium text-gray-600 text-sm mb-1">タグ</h3>
+        <div className="flex flex-wrap gap-1">
           {selectedTask.tags.length > 0 ? (
             selectedTask.tags.map((tag, index) => (
-              <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+              <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
                 {tag}
               </span>
             ))
           ) : (
-            <span className="text-gray-500">タグなし</span>
+            <span className="text-gray-500 text-xs">タグなし</span>
           )}
         </div>
       </div>
