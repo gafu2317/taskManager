@@ -5,6 +5,7 @@ import { Task } from "../types/task";
 import { getTasks } from "../lib/api";
 import TaskForm from "@/components/features/tasks/TaskForm";
 import TaskBubbleView from "@/components/features/tasks/TaskBubbleView";
+import TaskDetail from "@/components/features/tasks/TaskDetail";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -96,28 +97,7 @@ export default function Home() {
       <div className="w-1/5 bg-white border-l border-gray-200 p-6">
         <h2 className="text-lg font-semibold mb-6 text-gray-800">Task Detail</h2>
         {selectedTask ? (
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Title</h3>
-              <p className="text-gray-600">{selectedTask.title}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Description</h3>
-              <p className="text-gray-600">{selectedTask.description || "No description"}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Importance</h3>
-              <p className="text-gray-600">{selectedTask.importance}/5</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Cost</h3>
-              <p className="text-gray-600">{selectedTask.cost}/5</p>
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-700 mb-2">Status</h3>
-              <p className="text-gray-600">{selectedTask.completed ? "Completed" : "Pending"}</p>
-            </div>
-          </div>
+          <TaskDetail selectedTask={selectedTask} />
         ) : (
           <p className="text-gray-500">Click a task bubble to view details</p>
         )}
