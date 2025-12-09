@@ -42,10 +42,10 @@ const TaskForm = ( props:TaskFormProps) => {
 
   return (
     <>
-      <h2 className="text-xl font-bold mb-4">Create New Task</h2>
+      <h2 className="text-xl font-bold mb-4">新しいタスクを作成</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block mb-1 font-medium">Title</label>
+          <label className="block mb-1 font-medium">タイトル</label>
           <input
             type="text"
             value={title}
@@ -55,7 +55,7 @@ const TaskForm = ( props:TaskFormProps) => {
           />
         </div>
         <div>
-          <label className="block mb-1 font-medium">Description</label>
+          <label className="block mb-1 font-medium">説明</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -64,7 +64,7 @@ const TaskForm = ( props:TaskFormProps) => {
           />
         </div>
         <div>
-          <label className="block mb-2 font-medium">Importance</label>
+          <label className="block mb-2 font-medium">重要度</label>
           <div className="flex gap-2">
             {[1, 2, 3, 4, 5].map((level) => (
               <button
@@ -86,7 +86,7 @@ const TaskForm = ( props:TaskFormProps) => {
           </div>
         </div>
         <div>
-          <label className="block mb-2 font-medium">Cost</label>
+          <label className="block mb-2 font-medium">コスト</label>
           <div className="flex gap-2 items-center">
             {[1, 2, 3, 4, 5].map((level) => {
               const sizeClass = getCostButtonSize(level);
@@ -108,7 +108,7 @@ const TaskForm = ( props:TaskFormProps) => {
           </div>
         </div>
         <div>
-          <label className="block mb-1 font-medium">Tags (comma separated)</label>
+          <label className="block mb-1 font-medium">タグ（カンマ区切り）</label>
           <input
             type="text"
             value={tags.join(', ')}
@@ -121,7 +121,7 @@ const TaskForm = ( props:TaskFormProps) => {
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
-          Create Task
+          タスクを作成
         </button>
       </form>
     </>

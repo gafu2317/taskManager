@@ -48,11 +48,11 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
         }}>
         {loading ? (
           <div className="flex justify-center items-center h-full">
-            <p className="text-gray-600">Loading bubbles...</p>
+            <p className="text-gray-600">バブルを読み込み中...</p>
           </div>
         ) : tasks.length === 0 ? (
           <div className="flex justify-center items-center h-full">
-            <p className="text-gray-500">No tasks to display</p>
+            <p className="text-gray-500">表示するタスクがありません</p>
           </div>
         ) : (
           // 風船表示
