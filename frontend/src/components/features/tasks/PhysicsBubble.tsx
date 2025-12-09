@@ -11,9 +11,10 @@ interface PhysicsBubbleProps {
   onPositionUpdate?: (id: string, position:{x: number, y: number}) => void;
   selectedTaskId: string | null;
   onBubbleClick: (taskId: string) => void;
+  onTaskComplete: (taskId: string) => void;
 }
 
-const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate, otherBubbles, selectedTaskId, onBubbleClick}:PhysicsBubbleProps) => {
+const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate, otherBubbles, selectedTaskId, onBubbleClick, onTaskComplete}:PhysicsBubbleProps) => {
   const [position, setPosition] = React.useState<{x: number, y: number}>({x: Math.random() * (containerWidth-90), y: Math.random() * (containerHeight-90)}); 
   
   const velocityRef = useRef((() => {
@@ -114,7 +115,7 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
 
   return (
   <>
-    <TaskBubble task={task} x={position.x} y={position.y} onBubbleClick={onBubbleClick}></TaskBubble>
+    <TaskBubble task={task} x={position.x} y={position.y} onBubbleClick={onBubbleClick} onTaskComplete={onTaskComplete}></TaskBubble>
   </>
   )
 }

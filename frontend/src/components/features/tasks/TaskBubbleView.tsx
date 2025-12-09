@@ -9,9 +9,10 @@ interface TaskBubbleViewProps {
   containerWidth: number;
   containerHeight: number;
   onTaskSelect: (taskId: string) => void;
+  onTaskComplete: (taskId: string) => void;
 }
 
-const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTaskSelect}: TaskBubbleViewProps) => {
+const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTaskSelect, onTaskComplete}: TaskBubbleViewProps) => {
   const [bubblePositions, setBubblePositions] = useState<Record<string, {x: number, y: number, radius: number}>>({});
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
@@ -72,6 +73,7 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
               containerHeight={containerHeight}
               otherBubbles={getOtherBubbles(task.id)}
               onPositionUpdate={handlePositionUpdate}
+              onTaskComplete={() => onTaskComplete(task.id)}
             />
           ))
         )}

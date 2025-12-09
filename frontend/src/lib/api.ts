@@ -72,7 +72,7 @@ export async function getTask(id: string): Promise<Task> {
 
 export async function updateTask(id: string, task: Partial<Task>): Promise<Task> {
   try {
-    const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/task/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ export async function updateTask(id: string, task: Partial<Task>): Promise<Task>
 
 export async function deleteTask(id: string): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE_URL}/tasks/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/task/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {

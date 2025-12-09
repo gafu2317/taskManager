@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef} from "react";
 import { Task } from "../types/task";
-import { getTasks } from "../lib/api";
+import { getTasks, deleteTask, updateTask } from "../lib/api";
 import TaskForm from "@/components/features/tasks/TaskForm";
 import TaskBubbleView from "@/components/features/tasks/TaskBubbleView";
 import TaskDetail from "@/components/features/tasks/TaskDetail";
@@ -62,6 +62,30 @@ export default function Home() {
     }
   };
 
+  const handleTaskDelete = async (taskId: string) => {
+    try {
+      await deleteTask(taskId);
+      setTasks((prev) => prev.filter((task) => task.id !== taskId));
+      if (selectedTaskId === taskId) {
+        setSelectedTaskId(null);
+      }
+    } catch (error) {
+      console.error("Failed to delete task:", error);
+    }
+  };
+
+  const handleTaskComplete = async (taskId: string) => {
+    try {
+      await updateTask(taskId, { completed: true });
+      setTasks((prev) => prev.filter((task) => task.id !== taskId));
+      if (selectedTaskId === taskId) {
+        setSelectedTaskId(null);
+      }
+    } catch (error) {
+      console.error("Failed to complete task:", error);
+    }
+  };
+
   const handleTaskSelect = (taskId: string) => {
     if (taskId === '') {
       // 空文字は選択解除
@@ -99,6 +123,7 @@ export default function Home() {
             containerWidth={containerSize.width}
             containerHeight={containerSize.height}
             onTaskSelect={handleTaskSelect}
+            onTaskComplete={handleTaskComplete}
           />
         </div>
       </div>
