@@ -65,18 +65,24 @@ func createTaskWithDB(repo *repository.TaskRepository) gin.HandlerFunc {
 func getTasks(c *gin.Context) {
 	completed := c.Query("completed")
 	
-	var filteredTasks []models.Task
+	filteredTasks := make([]models.Task, 0)
 	
 	// クエリパラメータに応じてフィルタリング
 	for _, task := range tasks {
+		shouldInclude := false
+		
 		if completed == "" {
 			// パラメータなし = 全て返す
-			filteredTasks = append(filteredTasks, task)
-		} else if completed == "true" && task.Completed {
+			shouldInclude = true
+		} else if completed == "true" {
 			// completed=true = 完了済みのみ
-			filteredTasks = append(filteredTasks, task)
-		} else if completed == "false" && !task.Completed {
+			shouldInclude = task.Completed
+		} else if completed == "false" {
 			// completed=false = 未完了のみ
+			shouldInclude = !task.Completed
+		}
+		
+		if shouldInclude {
 			filteredTasks = append(filteredTasks, task)
 		}
 	}

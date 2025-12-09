@@ -100,7 +100,7 @@ export default function Home() {
     setSelectedTaskId(null);
   };
 
-  const selectedTask = tasks.find(task => task.id === selectedTaskId);
+  const selectedTask = tasks?.find(task => task.id === selectedTaskId);
 
   return (
     <div className="flex h-screen bg-gray-50" onClick={handleContainerClick}>

@@ -24,7 +24,7 @@ export async function getTasks(options: GetTasksOptions = {}): Promise<Task[]> {
       throw new Error('Failed to fetch tasks');
     }
     const data: TasksResponse = await response.json();
-    return data.tasks;
+    return data.tasks || [];
 
   } catch (error) {
     console.error('Error fetching tasks:', error);
