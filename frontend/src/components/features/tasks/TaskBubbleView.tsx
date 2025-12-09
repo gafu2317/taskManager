@@ -14,17 +14,14 @@ interface TaskBubbleViewProps {
 const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTaskSelect}: TaskBubbleViewProps) => {
   const [bubblePositions, setBubblePositions] = useState<Record<string, {x: number, y: number, radius: number}>>({});
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
 
   const handleBubbleClick = (taskId: string) => {
     if (taskId === selectedTaskId) {
       // 同じタスクをクリック → 選択解除 → 動き出す
       setSelectedTaskId(null);
-      setIsPaused(false);
     } else {
       // 違うタスクをクリック → 選択変更 → 停止のまま
       setSelectedTaskId(taskId);
-      setIsPaused(true);
     }
     onTaskSelect(taskId); // 上位コンポーネントに伝える
   };
@@ -53,7 +50,6 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
           e.stopPropagation();
           // バブルエリア内の空白をクリック → 選択解除
           setSelectedTaskId(null);
-          setIsPaused(false);
           onTaskSelect(''); // 空文字で選択解除を通知
         }}>
         {loading ? (
@@ -70,7 +66,7 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
             <PhysicsBubble
               key={task.id}
               task={task} 
-              isPaused={isPaused}
+              selectedTaskId={selectedTaskId}
               onBubbleClick={() => handleBubbleClick(task.id)}
               containerWidth={containerWidth}
               containerHeight={containerHeight}

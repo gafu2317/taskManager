@@ -9,11 +9,11 @@ interface PhysicsBubbleProps {
   containerHeight: number;
   otherBubbles?: {x: number, y: number, radius: number}[];
   onPositionUpdate?: (id: string, position:{x: number, y: number}) => void;
-  isPaused: boolean;
+  selectedTaskId: string | null;
   onBubbleClick: (taskId: string) => void;
 }
 
-const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate, otherBubbles, isPaused, onBubbleClick}:PhysicsBubbleProps) => {
+const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate, otherBubbles, selectedTaskId, onBubbleClick}:PhysicsBubbleProps) => {
   const [position, setPosition] = React.useState<{x: number, y: number}>({x: Math.random() * (containerWidth-90), y: Math.random() * (containerHeight-90)}); 
   
   const velocityRef = useRef((() => {
@@ -31,8 +31,8 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
   const otherBubblesRef = useRef(otherBubbles);
   otherBubblesRef.current = otherBubbles;
   
-  const isPausedRef = useRef(isPaused);
-  isPausedRef.current = isPaused;
+  const selectedTaskIdRef = useRef(selectedTaskId);
+  selectedTaskIdRef.current = selectedTaskId;
   
   const onPositionUpdateRef = useRef(onPositionUpdate);
   onPositionUpdateRef.current = onPositionUpdate;
@@ -41,7 +41,7 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
 
     const animate = () => {
       // 停止中は位置更新をスキップ、ただし位置報告は継続
-      if (isPausedRef.current) {
+      if (selectedTaskIdRef.current !== null) {
         animattionId = requestAnimationFrame(animate);
         return;
       }
