@@ -63,13 +63,23 @@ export default function Home() {
   };
 
   const handleTaskSelect = (taskId: string) => {
-    setSelectedTaskId(taskId === selectedTaskId ? null : taskId);
+    if (taskId === '') {
+      // 空文字は選択解除
+      setSelectedTaskId(null);
+    } else {
+      setSelectedTaskId(taskId === selectedTaskId ? null : taskId);
+    }
+  };
+
+  const handleContainerClick = () => {
+    // バブルエリア外をクリック → 選択解除
+    setSelectedTaskId(null);
   };
 
   const selectedTask = tasks.find(task => task.id === selectedTaskId);
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50" onClick={handleContainerClick}>
       {/* 左列 - タスク作成 (20%) */}
       <div className="w-1/5 bg-white border-r border-gray-200 p-6">
         <h2 className="text-lg font-semibold mb-6 text-gray-800">Create Task</h2>

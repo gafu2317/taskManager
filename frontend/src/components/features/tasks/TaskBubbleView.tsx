@@ -17,8 +17,15 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
   const handleBubbleClick = (taskId: string) => {
-    setSelectedTaskId(taskId === selectedTaskId ? null : taskId);
-    setIsPaused(!isPaused); // 全バブル一括で停止/再開
+    if (taskId === selectedTaskId) {
+      // 同じタスクをクリック → 選択解除 → 動き出す
+      setSelectedTaskId(null);
+      setIsPaused(false);
+    } else {
+      // 違うタスクをクリック → 選択変更 → 停止のまま
+      setSelectedTaskId(taskId);
+      setIsPaused(true);
+    }
     onTaskSelect(taskId); // 上位コンポーネントに伝える
   };
   
@@ -41,7 +48,14 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
   return (
     <>
       <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden bg-gradient-to-b from-blue-50 to-blue-100"
-        style={{ width: containerWidth, height: containerHeight }}>
+        style={{ width: containerWidth, height: containerHeight }}
+        onClick={(e) => {
+          e.stopPropagation();
+          // バブルエリア内の空白をクリック → 選択解除
+          setSelectedTaskId(null);
+          setIsPaused(false);
+          onTaskSelect(''); // 空文字で選択解除を通知
+        }}>
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <p className="text-gray-600">Loading bubbles...</p>
