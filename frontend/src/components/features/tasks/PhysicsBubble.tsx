@@ -18,8 +18,8 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
   const [position, setPosition] = React.useState<{x: number, y: number}>({x: Math.random() * (containerWidth-90), y: Math.random() * (containerHeight-90)}); 
   
   const velocityRef = useRef((() => {
-    const vx = (Math.random() - 0.5) * 3;
-    const vy = (Math.random() - 0.5) * 3;
+    const vx = (Math.random() - 0.5) * 2;
+    const vy = (Math.random() - 0.5) * 2;
 
     // 最低速度2を保証
     return {
