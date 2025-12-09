@@ -49,7 +49,7 @@ const TaskDetail = ({selectedTask, onTaskDelete}: TaskDetailProps) => {
       <div className="mt-6 pt-4 border-t border-gray-200">
         <button
           onClick={() => onTaskDelete(selectedTask.id)}
-          className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+          className="w-full bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-4 rounded-md transition-colors"
         >
           タスクを削除
         </button>
