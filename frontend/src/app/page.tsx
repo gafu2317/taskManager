@@ -76,11 +76,11 @@ export default function Home() {
 
   const handleTaskComplete = async (taskId: string) => {
     try {
+      // まず選択状態を解除して他のバブルを動かす
+      setSelectedTaskId(null);
+      
       await updateTask(taskId, { completed: true });
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
-      if (selectedTaskId === taskId) {
-        setSelectedTaskId(null);
-      }
     } catch (error) {
       console.error("Failed to complete task:", error);
     }
