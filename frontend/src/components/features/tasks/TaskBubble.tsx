@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { Task } from '../../../types/task'
 import { getTaskBubbleSize, getCostColor } from '../../../utils/taskUtils'
 
@@ -16,20 +16,49 @@ const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete }: TaskBubblePro
   const costColor = getCostColor(task.cost);
   const textColor = 'black'; // 全て黒文字
   
+  const [isLongPressing, setIsLongPressing] = useState(false);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressStartTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const wasLongPressRef = useRef(false);
+  const pressStartTimeRef = useRef<number>(0);
   const LONG_PRESS_DURATION = 1500; // 1.5秒
+  const LONG_PRESS_START_THRESHOLD = 200; // 200ms後に長押し開始
 
   const startLongPress = () => {
-    longPressTimerRef.current = setTimeout(() => {
-      onTaskComplete(task.id);
-    }, LONG_PRESS_DURATION);
+    pressStartTimeRef.current = Date.now();
+    setIsLongPressing(true);
+    wasLongPressRef.current = false;
+    
+    // 200ms後に長押し状態にする
+    longPressStartTimerRef.current = setTimeout(() => {
+      onBubbleClick(task.id); // 長押し開始時にバブルを停止
+      
+      longPressTimerRef.current = setTimeout(() => {
+        wasLongPressRef.current = true;
+        onTaskComplete(task.id);
+        setIsLongPressing(false);
+      }, LONG_PRESS_DURATION - LONG_PRESS_START_THRESHOLD);
+    }, LONG_PRESS_START_THRESHOLD);
   };
 
   const stopLongPress = () => {
+    const pressDuration = Date.now() - pressStartTimeRef.current;
+    
+    if (longPressStartTimerRef.current) {
+      clearTimeout(longPressStartTimerRef.current);
+      longPressStartTimerRef.current = null;
+    }
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
     }
+    
+    // 200ms以内の場合は通常クリック扱い
+    if (pressDuration < LONG_PRESS_START_THRESHOLD) {
+      wasLongPressRef.current = false;
+    }
+    
+    setIsLongPressing(false);
   };
 
 
@@ -54,7 +83,11 @@ const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete }: TaskBubblePro
       }}
       onClick={(e) => {
         e.preventDefault();
-        setTimeout(() => onBubbleClick(task.id), 0);
+        // 長押しでタスクが完了した場合はクリック処理をスキップ
+        if (!wasLongPressRef.current) {
+          setTimeout(() => onBubbleClick(task.id), 0);
+        }
+        wasLongPressRef.current = false; // フラグをリセット
       }}
       onMouseDown={startLongPress}
       onMouseUp={stopLongPress}
