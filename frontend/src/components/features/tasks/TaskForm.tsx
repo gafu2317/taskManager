@@ -14,6 +14,7 @@ const TaskForm = ( props:TaskFormProps) => {
   const [importance, setImportance] = useState<number>(1);
   const [cost, setCost] = useState<number>(1);
   const [tags, setTags] = useState<string[]>([]);
+  const [currentTag, setCurrentTag] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +39,25 @@ const TaskForm = ( props:TaskFormProps) => {
     } catch (error) {
       console.error('Error creating task:', error);
     }
+  };
+
+  const handleTagAdd = (tag: string) => {
+    const trimmedTag = tag.trim();
+    if (trimmedTag && !tags.includes(trimmedTag)) {
+      setTags([...tags, trimmedTag]);
+    }
+    setCurrentTag('');
+  };
+
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleTagAdd(currentTag);
+    }
+  };
+
+  const handleTagRemove = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
   return (
@@ -108,12 +128,37 @@ const TaskForm = ( props:TaskFormProps) => {
           </div>
         </div>
         <div>
-          <label className="block mb-1 font-medium">タグ（カンマ区切り）</label>
+          <label className="block mb-1 font-medium">タグ（Enterキーで追加）</label>
+          
+          {/* 確定済みタグ表示エリア */}
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-50 rounded min-h-[40px]">
+              {tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded-full relative group cursor-pointer"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => handleTagRemove(tag)}
+                    className="ml-1 text-blue-600 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                    aria-label={`Remove ${tag} tag`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          
+          {/* タグ入力フィールド */}
           <input
             type="text"
-            value={tags.join(', ')}
-            onChange={(e) => 
-              setTags(e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0))}
+            value={currentTag}
+            onChange={(e) => setCurrentTag(e.target.value)}
+            onKeyDown={handleTagKeyPress}
+            placeholder="タグを入力してEnterキーで追加"
             className="w-full border px-3 py-2 rounded"
           />
         </div>
