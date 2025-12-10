@@ -9,9 +9,10 @@ interface TaskBubbleProps {
   y: number;
   onBubbleClick: (taskId: string) => void;
   onTaskComplete: (taskId: string) => void;
+  isSelected?: boolean;
 }
 
-const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete }: TaskBubbleProps) => {
+const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete, isSelected = false }: TaskBubbleProps) => {
   const size = getTaskBubbleSize(task.importance);
   const costColor = getCostColor(task.cost);
   const textColor = 'black'; // 全て黒文字
@@ -87,11 +88,15 @@ const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete }: TaskBubblePro
     <>
       <div style={{
         position: 'absolute',
-        transform: `translate(${x - size/2}px, ${y - size/2}px)`,
+        transform: `translate(${x - size/2}px, ${y - size/2}px)${isSelected ? ' scale(1.2)' : ''}`,
+        transition: isSelected ? 'all 0.3s ease-in-out' : 'none',
         width: size,
         height: size,
         backgroundColor: costColor,
         borderRadius: '50%',
+        border: 'none',
+        boxShadow: isSelected ? '0 0 30px rgba(37, 99, 235, 0.8), inset 0 0 10px rgba(37, 99, 235, 0.3)' : 'none',
+        zIndex: isSelected ? 10 : 1,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

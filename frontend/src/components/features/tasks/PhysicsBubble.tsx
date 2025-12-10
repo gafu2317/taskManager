@@ -121,7 +121,7 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
 
   return (
   <>
-    <TaskBubble task={task} x={position.x} y={position.y} onBubbleClick={onBubbleClick} onTaskComplete={onTaskComplete}></TaskBubble>
+    <TaskBubble task={task} x={position.x} y={position.y} onBubbleClick={onBubbleClick} onTaskComplete={onTaskComplete} isSelected={selectedTaskId === task.id}></TaskBubble>
   </>
   )
 }
