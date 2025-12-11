@@ -6,10 +6,9 @@
 - **技術**: Go + Next.js + DynamoDB + AWS
 
 ## 現在の環境状況
-- **DynamoDB Local**: ポート8001で稼働中
-- **Next.js Dev Server**: ポート3000で稼働中  
+- **DynamoDB Local**: ポート8001で稼働中（現在は未使用、メモリベース開発）
+- **Next.js Dev Server**: ポート3001で稼働中  
 - **Go API Server**: ポート8080で稼働中
-- **テストテーブル**: "TaskManagerTest" 作成済み
 
 ## フロントエンドの規定
 ---
@@ -65,21 +64,16 @@ Remember: Claude is capable of extraordinary creative work. Don't hold back, sho
 ✅ **AWS SDK** - DynamoDBローカル接続、テーブル操作
 
 ### 重要な学習ポイント
-- テストは重要度で優先順位をつける（1:1不要）
-- Go言語: 関数定義、ポインタ、gin.Context
+- Go言語: 関数定義、ポインタ、gin.Context、Repository パターン
 - 開発サイクル: 設計→実装→テスト→デプロイ
-- 自動記録システム: エラー・進捗を自動でファイル更新
+- Enterキーベースのタグ入力システム実装
 
 ## ファイル構成
 - **CLAUDE.md**: メイン設定（このファイル）
-- **CLAUDE-ERRORS.md**: エラー対処記録（自動更新）
-- **CLAUDE-PLAN.md**: 実装計画・進捗管理
-- **CLAUDE-COMMANDS.md**: コマンド辞書
 
 ## 開発方針
 - 実際に動かして体験重視
 - 一つずつ技術を理解してから次に進む
-- エラー・進捗は自動記録
 
 ## 重要な協力方針
 ### 学習・成長重視
@@ -99,21 +93,3 @@ Remember: Claude is capable of extraordinary creative work. Don't hold back, sho
 - 実際のコード記述
 - 学習内容の理解・習得
 
-## 自動更新対象ファイル
-### README.md の機能説明
-- 新機能設計完了時に自動で追記
-- CLAUDE-DESIGN.mdの設計内容をベースに更新
-- シンプル・簡潔な記述で統一
-- プレゼンテーション用として適切な形式
-
-### CLAUDE-PLAN.md の完成系イメージ
-- **計画変更があるたびに必ず更新**
-- 現在の完成系イメージセクションを最新状態に保つ
-- 技術構成・動作イメージ・ユーザー体験を詳細に記録
-- 目指すべきゴールを常に明確にする
-
-## メモ更新ルール
-- **計画変更時**: CLAUDE-PLAN.mdの完成系イメージを即座に更新
-- **実装方針変更時**: 技術構成・コンポーネント構造の見直し
-- **UI/UX変更時**: 動作イメージ・ユーザー体験の修正
-- **機能追加時**: 新機能を完成系イメージに統合
