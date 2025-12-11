@@ -18,6 +18,7 @@ import (
 
 //一時的なスライス
 var tasks []models.Task
+var tags []models.Tag
 
 //POST /tasks ハンドラー
 func createTask(c *gin.Context) {
@@ -42,6 +43,24 @@ func createTask(c *gin.Context) {
 		return
 	}
 
+	for _, tag := range newTask.Tags {
+		found := false
+		for i, existingTag := range tags {
+			if existingTag.Name == tag {
+				tags[i].Count++
+				tags[i].LastUsed = time.Now()
+				found = true
+				break
+			}
+		}
+		if !found {
+			tags = append(tags, models.Tag{
+				Name:     tag,
+				Count:    1,
+				LastUsed: time.Now(),
+			})
+		}
+	}
 	//IDとタイムスタンプを設定
 	newTask.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 	newTask.CreatedAt = time.Now()
@@ -189,6 +208,13 @@ func healthCheck(c *gin.Context) {
 	})
 }
 
+func getTags(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"tags": tags,
+		"count": len(tags),
+	})
+}
+
 func main() {
 	// DynamoDB接続は一時的にコメントアウト
 	/*
@@ -212,6 +238,7 @@ func main() {
 	r.GET("/task/:id", getTask)
 	r.PUT("/task/:id", updateTask)
 	r.DELETE("/task/:id", deleteTask)
+	r.GET("/tags", getTags)
 	
 	port := os.Getenv("PORT")
 	if port == "" {
