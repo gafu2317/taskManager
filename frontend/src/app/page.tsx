@@ -6,12 +6,15 @@ import { getTasks, deleteTask, updateTask } from "../lib/api";
 import TaskForm from "@/components/features/tasks/TaskForm";
 import TaskBubbleView from "@/components/features/tasks/TaskBubbleView";
 import TaskDetail from "@/components/features/tasks/TaskDetail";
+import TaskEditModal from "@/components/features/tasks/TaskEditModal";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [containerSize, setContainerSize] = useState({ width: 600, height: 350 });
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const fetchTasks = async () => {
@@ -86,6 +89,21 @@ export default function Home() {
     }
   };
 
+  const handleTaskEdit = (task: Task) => {
+    setEditingTask(task);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setEditingTask(null);
+  };
+
+  const handleTaskUpdated = async () => {
+    const fetchedTasks = await getTasks({completed: false});
+    setTasks(fetchedTasks);
+  };
+
   const handleTaskSelect = (taskId: string) => {
     if (taskId === '') {
       // 空文字は選択解除
@@ -133,11 +151,21 @@ export default function Home() {
       <div className="w-1/5 bg-white border-l border-gray-200 p-6">
         <h2 className="text-lg font-semibold mb-6 text-gray-800">タスク詳細</h2>
         {selectedTask ? (
-          <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} />
+          <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} />
         ) : (
           <p className="text-gray-500">タスクバブルをクリックして詳細を表示</p>
         )}
       </div>
+      
+      {/* タスク編集モーダル */}
+      {editingTask && (
+        <TaskEditModal 
+          task={editingTask}
+          isOpen={isEditModalOpen}
+          onClose={handleEditModalClose}
+          onTaskUpdated={handleTaskUpdated}
+        />
+      )}
     </div>
   );
 }

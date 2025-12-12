@@ -4,9 +4,10 @@ import { Task } from '../../../types/task'
 interface TaskDetailProps {
   selectedTask: Task;
   onTaskDelete: (taskId: string) => void;
+  onTaskEdit: (task: Task) => void;
 }
 
-const TaskDetail = ({selectedTask, onTaskDelete}: TaskDetailProps) => {
+const TaskDetail = ({selectedTask, onTaskDelete, onTaskEdit}: TaskDetailProps) => {
   return (
   <>
     <div className="space-y-3">
@@ -51,8 +52,14 @@ const TaskDetail = ({selectedTask, onTaskDelete}: TaskDetailProps) => {
         </div>
       </div>
       
-      {/* 削除ボタン */}
-      <div className="mt-6 pt-4 border-t border-gray-200">
+      {/* 編集・削除ボタン */}
+      <div className="mt-6 pt-4 border-t border-gray-200 space-y-2">
+        <button
+          onClick={() => onTaskEdit(selectedTask)}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+        >
+          タスクを編集
+        </button>
         <button
           onClick={() => onTaskDelete(selectedTask.id)}
           className="w-full bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-4 rounded-md transition-colors"

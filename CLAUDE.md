@@ -7,7 +7,7 @@
 
 ## 現在の環境状況
 - **DynamoDB Local**: ポート8001で稼働中（現在は未使用、メモリベース開発）
-- **Next.js Dev Server**: ポート3001で稼働中  
+- **Next.js Dev Server**: ポート3000で稼働中  
 - **Go API Server**: ポート8080で稼働中
 
 ## フロントエンドの規定
