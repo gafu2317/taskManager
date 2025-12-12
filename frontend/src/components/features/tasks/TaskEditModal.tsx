@@ -32,6 +32,13 @@ const TaskEditModal = ({ task, isOpen, onClose, onTaskUpdated }: TaskEditModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 未確定のタグがある場合の警告
+    if (currentTag.trim()) {
+      alert(`未確定のタグ「${currentTag.trim()}」があります。Enterキーを押してタグを追加してください。`);
+      return;
+    }
+    
     const updatedTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> = {
       title,
       description,

@@ -18,6 +18,13 @@ const TaskForm = ( props:TaskFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // 未確定のタグがある場合の警告
+    if (currentTag.trim()) {
+      alert(`未確定のタグ「${currentTag.trim()}」があります。Enterキーを押してタグを追加してください。`);
+      return;
+    }
+    
     const newTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> = {
       title,
       description,
