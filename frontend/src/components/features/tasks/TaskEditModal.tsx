@@ -17,6 +17,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onTaskUpdated }: TaskEditModalPr
   const [cost, setCost] = useState<number>(1);
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState<string>('');
+  const [showTagWarning, setShowTagWarning] = useState<boolean>(false);
 
   // タスクが変更されたらフォームを初期化
   useEffect(() => {
@@ -35,9 +36,11 @@ const TaskEditModal = ({ task, isOpen, onClose, onTaskUpdated }: TaskEditModalPr
     
     // 未確定のタグがある場合の警告
     if (currentTag.trim()) {
-      alert(`未確定のタグ「${currentTag.trim()}」があります。Enterキーを押してタグを追加してください。`);
+      setShowTagWarning(true);
       return;
     }
+    
+    setShowTagWarning(false);
     
     const updatedTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> = {
       title,
@@ -64,6 +67,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onTaskUpdated }: TaskEditModalPr
       setTags([...tags, trimmedTag]);
     }
     setCurrentTag('');
+    setShowTagWarning(false); // タグ追加時に警告を非表示
   };
 
   const handleTagKeyPress = (e: React.KeyboardEvent) => {
@@ -194,6 +198,14 @@ const TaskEditModal = ({ task, isOpen, onClose, onTaskUpdated }: TaskEditModalPr
               placeholder="タグを入力してEnterキーで追加"
               className="w-full border px-3 py-2 rounded"
             />
+            
+            {/* 未確定タグ警告メッセージ */}
+            {showTagWarning && currentTag.trim() && (
+              <p className="text-red-500 text-sm mt-1 flex items-center">
+                <span className="mr-1">⚠️</span>
+                未確定のタグ「{currentTag.trim()}」があります。Enterキーを押してタグを追加してください。
+              </p>
+            )}
           </div>
           
           <div className="flex gap-2 pt-4">

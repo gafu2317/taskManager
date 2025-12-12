@@ -15,15 +15,18 @@ const TaskForm = ( props:TaskFormProps) => {
   const [cost, setCost] = useState<number>(1);
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState<string>('');
+  const [showTagWarning, setShowTagWarning] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // 未確定のタグがある場合の警告
     if (currentTag.trim()) {
-      alert(`未確定のタグ「${currentTag.trim()}」があります。Enterキーを押してタグを追加してください。`);
+      setShowTagWarning(true);
       return;
     }
+    
+    setShowTagWarning(false);
     
     const newTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> = {
       title,
@@ -42,6 +45,8 @@ const TaskForm = ( props:TaskFormProps) => {
       setImportance(1);
       setCost(1);
       setTags([]);
+      setCurrentTag('');
+      setShowTagWarning(false);
       onTaskCreated(); // タスク作成後に親コンポーネントに通知
     } catch (error) {
       console.error('Error creating task:', error);
@@ -54,6 +59,7 @@ const TaskForm = ( props:TaskFormProps) => {
       setTags([...tags, trimmedTag]);
     }
     setCurrentTag('');
+    setShowTagWarning(false); // タグ追加時に警告を非表示
   };
 
   const handleTagKeyPress = (e: React.KeyboardEvent) => {
@@ -168,6 +174,14 @@ const TaskForm = ( props:TaskFormProps) => {
             placeholder="タグを入力してEnterキーで追加"
             className="w-full border px-3 py-2 rounded"
           />
+          
+          {/* 未確定タグ警告メッセージ */}
+          {showTagWarning && currentTag.trim() && (
+            <p className="text-red-500 text-sm mt-1 flex items-center">
+              <span className="mr-1">⚠️</span>
+              未確定のタグ「{currentTag.trim()}」があります。Enterキーを押してタグを追加してください。
+            </p>
+          )}
         </div>
         <button
           type="submit"
