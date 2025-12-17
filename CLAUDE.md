@@ -82,6 +82,7 @@ Remember: Claude is capable of extraordinary creative work. Don't hold back, sho
 - [ ] タグの提案機能
 - [ ] 作業モードの実装
 - [ ] GSAPを使ったタスクバブルの模様替え
+- [ ] タグでフィルターして表示
 
 ## 重要な協力方針
 ### 学習・成長重視
