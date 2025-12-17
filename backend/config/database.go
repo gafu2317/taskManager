@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	
-	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
@@ -14,21 +13,14 @@ type DynamoDBClient struct {
 }
 
 func NewDynamoDBClient() (*DynamoDBClient, error) {
-	// AWS設定のロード
+	// AWS設定のロード（AWS認証情報は~/.aws/credentialsから自動読み込み）
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion("us-east-1"), // リージョンを指定
-		config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
-			return aws.Credentials{
-				AccessKeyID:     "dummy",
-				SecretAccessKey: "dummy",
-		}, nil
-		})),
+		config.WithRegion("ap-northeast-1"), // 東京リージョンを指定
 	)
 	if err != nil {
 		return nil, err
 	}
-	// ローカルDynamoDB用のエンドポイント設定
-	cfg.BaseEndpoint = aws.String("http://localhost:8001")
+	
 	client := dynamodb.NewFromConfig(cfg)
 
 	return &DynamoDBClient{

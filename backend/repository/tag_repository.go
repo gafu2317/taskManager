@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"my-webapp-backend/models"
 )
 
@@ -60,4 +61,29 @@ func (r *TagRepository) GetAllTags(ctx context.Context) ([]models.Tag, error) {
 	}
 
 	return tags, nil
+}
+
+// GetTagByName - 名前でタグを取得
+func (r *TagRepository) GetTagByName(ctx context.Context, name string) (*models.Tag, error) {
+	result, err := r.db.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: aws.String(r.TableName),
+		Key: map[string]types.AttributeValue{
+			"id": &types.AttributeValueMemberS{Value: name}, // タグのIDは名前を使用
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get item: %w", err)
+	}
+
+	if result.Item == nil {
+		return nil, nil // タグが見つからない場合
+	}
+
+	var tag models.Tag
+	err = attributevalue.UnmarshalMap(result.Item, &tag)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal item: %w", err)
+	}
+
+	return &tag, nil
 }
