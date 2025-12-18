@@ -7,6 +7,7 @@ import TaskForm from "@/components/features/tasks/TaskForm";
 import TaskBubbleView from "@/components/features/tasks/TaskBubbleView";
 import TaskDetail from "@/components/features/tasks/TaskDetail";
 import TaskEditModal from "@/components/features/tasks/TaskEditModal";
+import TaskFilterPanel from "@/components/features/tasks/TaskFilterPanel";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -124,13 +125,15 @@ export default function Home() {
     <div className="flex h-screen bg-gray-50" onClick={handleContainerClick}>
       {/* 左列 - タスク作成 (20%) */}
       <div className="w-1/5 bg-white border-r border-gray-200 p-6">
-        <h2 className="text-lg font-semibold mb-6 text-gray-800">タスク作成</h2>
+        <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク作成</h2>
         <TaskForm onTaskCreated={handleTaskCreated} />
       </div>
 
       {/* 中央列 - タスクバブル表示 (60%) */}
       <div className="w-3/5 bg-white p-6 flex flex-col items-center">
         <h2 className="text-lg font-semibold mb-6 text-gray-800">タスク一覧</h2>
+        <TaskFilterPanel 
+        />
         <div 
           ref={bubbleAreaRef}
           className="w-full h-full flex justify-center items-start"
@@ -149,7 +152,7 @@ export default function Home() {
 
       {/* 右列 - タスク詳細 (20%) */}
       <div className="w-1/5 bg-white border-l border-gray-200 p-6">
-        <h2 className="text-lg font-semibold mb-6 text-gray-800">タスク詳細</h2>
+        <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク詳細</h2>
         {selectedTask ? (
           <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} />
         ) : (
