@@ -100,12 +100,12 @@ const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete, isSelected = fa
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: Math.min(size / 4, 16),
+        fontSize: Math.min(size / 6, 12),
         color: textColor,
         fontWeight: 'bold',
         textAlign: 'center',
         overflow: 'hidden',
-        padding: '2px',
+        padding: '8px',
         cursor: 'pointer',
         userSelect: 'none'
       }}
