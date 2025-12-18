@@ -8,6 +8,7 @@ import TaskBubbleView from "@/components/features/tasks/TaskBubbleView";
 import TaskDetail from "@/components/features/tasks/TaskDetail";
 import TaskEditModal from "@/components/features/tasks/TaskEditModal";
 import TaskFilterPanel from "@/components/features/tasks/TaskFilterPanel";
+import { useTaskFilter } from "../hooks/useTaskFilter";
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -17,6 +18,7 @@ export default function Home() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
+  const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -133,13 +135,16 @@ export default function Home() {
       <div className="w-3/5 bg-white p-6 flex flex-col items-center">
         <h2 className="text-lg font-semibold mb-6 text-gray-800">タスク一覧</h2>
         <TaskFilterPanel 
+          taskFilter={taskFilter}
+          availableTags={availableTags}
+          onFilterChange={handleFilterChange}
         />
         <div 
           ref={bubbleAreaRef}
           className="w-full h-full flex justify-center items-start"
         >
           <TaskBubbleView 
-            tasks={tasks} 
+            tasks={filteredTasks}
             loading={loading}
             containerWidth={containerSize.width}
             containerHeight={containerSize.height}
