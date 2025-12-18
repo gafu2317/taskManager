@@ -6,9 +6,18 @@
 - **技術**: Go + Next.js + DynamoDB + AWS
 
 ## 現在の環境状況
-- **DynamoDB Local**: ポート8001で稼働中（現在は未使用、メモリベース開発）
+- **DynamoDB Local**: ポート8080で稼働中（現在は未使用、メモリベース開発）
 - **Next.js Dev Server**: ポート3000で稼働中  
 - **Go API Server**: ポート8080で稼働中
+
+## TODO
+- [ ] ログイン機能
+- [ ] 右下にマスコット配置
+- [ ] タスクの内容の編集
+- [ ] タグの提案機能
+- [ ] 作業モードの実装
+- [ ] GSAPを使ったタスクバブルの模様替え
+- [ ] タグでフィルターして表示
 
 ## フロントエンドの規定
 ---
@@ -54,51 +63,7 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
 
-## 学習進捗
 
-### 理解済み技術
-✅ **Docker Compose** - DynamoDBローカル環境構築
-✅ **Go + Gin** - APIサーバーの基本構造、healthCheckエンドポイント
-✅ **Next.js** - 開発サーバー起動、基本概念
-✅ **GitHub Actions** - CI/CDパイプライン、自動テスト
-✅ **AWS SDK** - DynamoDBローカル接続、テーブル操作
 
-### 重要な学習ポイント
-- Go言語: 関数定義、ポインタ、gin.Context、Repository パターン
-- 開発サイクル: 設計→実装→テスト→デプロイ
-- Enterキーベースのタグ入力システム実装
 
-## ファイル構成
-- **CLAUDE.md**: メイン設定（このファイル）
-
-## 開発方針
-- 実際に動かして体験重視
-- 一つずつ技術を理解してから次に進む
-
-## TODO
-- [ ] ログイン機能
-- [ ] 右下にマスコット配置
-- [ ] タスクの内容の編集
-- [ ] タグの提案機能
-- [ ] 作業モードの実装
-- [ ] GSAPを使ったタスクバブルの模様替え
-- [ ] タグでフィルターして表示
-
-## 重要な協力方針
-### 学習・成長重視
-- **必ず提案ベース**: AIが勝手に決めず、必ず選択肢を提示して決定は私が行う
-- **思考の機会提供**: ユーザーが考える必要を与える質問・提案形式
-- **ユーザーが実装**: コードはユーザーが書くことを前提とした指導・サポート
-
-### AIの役割
-- 技術選択肢の提示と比較
-- 設計案の提案と説明
-- 実装時のガイダンスとレビュー
-- エラー解決のヒント提供
-
-### 私の役割  
-- 最終的な技術選択・決定
-- 設計内容の判断・承認
-- 実際のコード記述
-- 学習内容の理解・習得
 
