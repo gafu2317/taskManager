@@ -66,6 +66,7 @@ const TaskForm = ( props:TaskFormProps) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleTagAdd(currentTag);
+      setCurrentTag('');
     }
   };
 
