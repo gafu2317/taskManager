@@ -34,7 +34,10 @@ const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete, isSelected = fa
     
     // 200ms後に長押し状態にする
     longPressStartTimerRef.current = setTimeout(() => {
-      onBubbleClick(task.id); // 長押し開始時にバブルを停止
+      // 既に選択されているタスクの場合は再度クリックしない
+      if (!isSelected) {
+        onBubbleClick(task.id); // 長押し開始時にバブルを停止
+      }
       setLongPressProgress(0);
       
       // 進行状況を更新
