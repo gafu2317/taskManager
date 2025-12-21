@@ -7,7 +7,7 @@ export const useTaskFilter = (tasks: Task[]) => {
   const [taskFilter, setTaskFilter] = useState<TaskFilter>({
     selectedTags: [],
     filterMode: 'AND',
-    isCollapsed: false
+    isCollapsed: true
   });
   
   const availableTags = useMemo(() =>{
