@@ -1,9 +1,9 @@
-export const getTaskBubbleSize = (importance: number): number => {
-  return importance * importance * 4 + 80;
+export const getTaskBubbleSize = (cost: number): number => {
+  return cost * cost * 4 + 80;
 };
 
-export const getTaskBubbleRadius = (importance: number): number => {
-  return getTaskBubbleSize(importance) / 2;
+export const getTaskBubbleRadius = (cost: number): number => {
+  return getTaskBubbleSize(cost) / 2;
 };
 
 export const getCostColor = (cost: number): string => {

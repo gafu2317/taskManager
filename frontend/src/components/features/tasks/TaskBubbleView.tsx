@@ -24,7 +24,7 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
 
   const handlePositionUpdate = (id: string, position: {x: number, y: number}) => {
     const task = tasks.find(task => task.id === id);
-    const radius = task ? getTaskBubbleRadius(task.importance) : 21;
+    const radius = task ? getTaskBubbleRadius(task.cost) : 21;
     setBubblePositions((prev) => ({
       ...prev,
       [id]: { x: position.x, y: position.y, radius }

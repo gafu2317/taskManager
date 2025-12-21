@@ -17,6 +17,7 @@
     "@aws-sdk/client-dynamodb": "^3.888.0",
     "aws-sdk": "^2.1692.0",
     "framer-motion": "^12.23.25",
+    "gsap": "^3.14.2",
     "next": "15.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0"
