@@ -93,15 +93,15 @@ const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete, isSelected = fa
         width: size,
         height: size,
         background: `
-          radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8) 10%, transparent 30%), 
-          ${importanceColor}
+          radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7) 8%, transparent 25%), 
+          ${importanceColor}40
         `,
         borderRadius: '50%',
-        border: `1px solid rgba(255,255,255,0.5)`,
+        border: `2px solid ${importanceColor}90`,
         boxShadow: isSelected 
-          ? '0 0 30px rgba(37, 99, 235, 0.8), 0 8px 25px rgba(0,0,0,0.2)' 
-          : '0 4px 15px rgba(0,0,0,0.15)',
-        opacity: 0.85,
+          ? `0 0 30px ${importanceColor}CC, 0 8px 25px rgba(0,0,0,0.1)` 
+          : '0 4px 15px rgba(0,0,0,0.08)',
+        opacity: 0.95,
         zIndex: isSelected ? 10 : 1,
         display: 'flex',
         alignItems: 'center',
