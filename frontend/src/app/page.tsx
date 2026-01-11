@@ -8,6 +8,7 @@ import TaskBubbleView from "@/components/features/tasks/TaskBubbleView";
 import TaskDetail from "@/components/features/tasks/TaskDetail";
 import TaskEditModal from "@/components/features/tasks/TaskEditModal";
 import TaskFilterPanel from "@/components/features/tasks/TaskFilterPanel";
+import RegisterPrompt from "@/components/features/auth/RegisterPrompt";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 
 export default function Home() {
@@ -17,6 +18,8 @@ export default function Home() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isRegisterPromptDismissed, setIsRegisterPromptDismissed] = useState(false);
+  const [showRegisterPopup, setShowRegisterPopup] = useState(false);
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
   useEffect(() => {
@@ -61,6 +64,13 @@ export default function Home() {
     try {
       const fetchedTasks = await getTasks({completed: false});
       setTasks(fetchedTasks);
+      
+      // タスク数に応じてポップアップ表示判定
+      console.log('Task created. Total tasks:', fetchedTasks.length, 'Dismissed:', isRegisterPromptDismissed);
+      if (!isRegisterPromptDismissed && fetchedTasks.length >= 5) {
+        console.log('Showing register popup');
+        setShowRegisterPopup(true);
+      }
     } catch (error) {
       console.error("Failed to fetch tasks:", error);
     } finally {
@@ -121,6 +131,16 @@ export default function Home() {
     setSelectedTaskId(null);
   };
 
+  const handleRegisterClick = () => {
+    // アカウント作成ページへの遷移（後で実装）
+    console.log('Account registration requested');
+  };
+
+  const handleDismissRegisterPrompt = () => {
+    setIsRegisterPromptDismissed(true);
+    setShowRegisterPopup(false);
+  };
+
   const selectedTask = tasks?.find(task => task.id === selectedTaskId);
 
   return (
@@ -173,6 +193,28 @@ export default function Home() {
           onClose={handleEditModalClose}
           onTaskUpdated={handleTaskUpdated}
         />
+      )}
+      
+      {/* 登録促進ポップアップ */}
+      {console.log('Render: showRegisterPopup =', showRegisterPopup)}
+      {showRegisterPopup && (
+        <div 
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          onClick={handleDismissRegisterPrompt}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <RegisterPrompt 
+              taskCount={tasks.length}
+              onRegisterClick={handleRegisterClick}
+              onDismiss={handleDismissRegisterPrompt}
+              isDismissed={isRegisterPromptDismissed}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
