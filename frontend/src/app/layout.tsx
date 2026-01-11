@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import AuthSessionProvider from '@/components/providers/SessionProvider';
+import LoginButton from '@/components/auth/LoginButton';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,12 +29,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <header className="bg-blue-600 text-white shadow-md">
-          <div className="max-w-7xl mx-auto px-4 py-4 text-center">
-            <h1 className="text-2xl font-bold">Task Manager</h1>
-          </div>
-        </header>
-        {children}
+        <AuthSessionProvider>
+          <header className="bg-blue-600 text-white shadow-md">
+            <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+              <h1 className="text-2xl font-bold">Task Manager</h1>
+              <LoginButton />
+            </div>
+          </header>
+          {children}
+        </AuthSessionProvider>
       </body>
     </html>
   );

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef} from "react";
+import { signIn, useSession } from "next-auth/react";
+import { migrateGuestDataToUser } from "../lib/authUtils";
 import { Task } from "../types/task";
 import { getTasks, deleteTask, updateTask } from "../lib/api";
 import TaskForm from "@/components/features/tasks/TaskForm";
@@ -12,6 +14,7 @@ import RegisterPrompt from "@/components/features/auth/RegisterPrompt";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 
 export default function Home() {
+  const { data: session } = useSession();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [containerSize, setContainerSize] = useState({ width: 600, height: 350 });
@@ -22,6 +25,30 @@ export default function Home() {
   const [showRegisterPopup, setShowRegisterPopup] = useState(false);
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
+  // ログイン状態変化時の処理
+  useEffect(() => {
+    if (session?.user && (session.user as any).id) {
+      const userId = (session.user as any).id;
+      console.log('ユーザーログイン検出:', userId);
+      
+      // ゲストデータをユーザーアカウントに移行
+      migrateGuestDataToUser(userId);
+      
+      // タスクを再読み込み
+      const fetchTasks = async () => {
+        try {
+          const fetchedTasks = await getTasks({completed: false});
+          setTasks(fetchedTasks);
+        } catch (error) {
+          console.error("Failed to fetch tasks:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchTasks();
+    }
+  }, [session]);
+
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -34,6 +61,7 @@ export default function Home() {
       }
     };
 
+    // 初回読み込み（ログイン状態に関係なく）
     fetchTasks();
   }, []);
 
@@ -65,9 +93,9 @@ export default function Home() {
       const fetchedTasks = await getTasks({completed: false});
       setTasks(fetchedTasks);
       
-      // タスク数に応じてポップアップ表示判定
-      console.log('Task created. Total tasks:', fetchedTasks.length, 'Dismissed:', isRegisterPromptDismissed);
-      if (!isRegisterPromptDismissed && fetchedTasks.length >= 5) {
+      // ログインしていない場合のみ登録促進ポップアップ表示判定
+      console.log('Task created. Total tasks:', fetchedTasks.length, 'Dismissed:', isRegisterPromptDismissed, 'Session:', !!session);
+      if (!session && !isRegisterPromptDismissed && fetchedTasks.length >= 5) {
         console.log('Showing register popup');
         setShowRegisterPopup(true);
       }
@@ -132,8 +160,9 @@ export default function Home() {
   };
 
   const handleRegisterClick = () => {
-    // アカウント作成ページへの遷移（後で実装）
-    console.log('Account registration requested');
+    // Googleアカウント作成に遷移
+    signIn('google');
+    setShowRegisterPopup(false);
   };
 
   const handleDismissRegisterPrompt = () => {
