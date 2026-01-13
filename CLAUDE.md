@@ -6,7 +6,7 @@
 - **技術**: Go + Next.js + DynamoDB + AWS
 
 ## 現在の環境状況
-- **DynamoDB Local**: ポート8080で稼働中（現在は未使用、メモリベース開発）
+- **DynamoDB Local**: ポート8080で稼働中
 - **Next.js Dev Server**: ポート3000で稼働中  
 - **Go API Server**: ポート8080で稼働中
 
