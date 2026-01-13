@@ -20,6 +20,13 @@ func createTask(taskRepo *repository.TaskRepository, tagRepo *repository.TagRepo
 	return func(c *gin.Context) {
 		var newTask models.Task
 
+		// ユーザーIDをヘッダーから取得
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
 		//JSONリクエストを構造体にバインド
 		if err := c.ShouldBindJSON(&newTask); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -69,8 +76,9 @@ func createTask(taskRepo *repository.TaskRepository, tagRepo *repository.TagRepo
 			}
 		}
 
-		//IDとタイムスタンプを設定
+		//IDとタイムスタンプ、ユーザーIDを設定
 		newTask.ID = fmt.Sprintf("%d", time.Now().UnixNano())
+		newTask.UserID = userID
 		newTask.CreatedAt = time.Now()
 		newTask.UpdatedAt = time.Now()
 
@@ -96,6 +104,13 @@ func createTaskWithDB(repo *repository.TaskRepository) gin.HandlerFunc {
 
 func getTasks(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// ユーザーIDをヘッダーから取得
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
 		completed := c.Query("completed")
 		
 		// DynamoDBから全タスクを取得
@@ -107,8 +122,13 @@ func getTasks(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 		
 		filteredTasks := make([]models.Task, 0)
 		
-		// クエリパラメータに応じてフィルタリング
+		// ユーザーIDとクエリパラメータに応じてフィルタリング
 		for _, task := range allTasks {
+			// まずユーザーIDでフィルタリング
+			if task.UserID != userID {
+				continue
+			}
+
 			shouldInclude := false
 			
 			if completed == "" {
@@ -175,6 +195,13 @@ func getTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 
 func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// ユーザーIDをヘッダーから取得
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
 		id := c.Param("id")
 
 		//更新データを受け取る構造体
@@ -193,6 +220,12 @@ func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 		
 		if existingTask == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+			return
+		}
+
+		// 所有者チェック
+		if existingTask.UserID != userID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 			return
 		}
 
@@ -228,6 +261,13 @@ func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 
 func deleteTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// ユーザーIDをヘッダーから取得
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
 		id := c.Param("id")
 
 		// まずタスクが存在するか確認
@@ -239,6 +279,12 @@ func deleteTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 		
 		if existingTask == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+			return
+		}
+
+		// 所有者チェック
+		if existingTask.UserID != userID {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
 			return
 		}
 
@@ -289,8 +335,8 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Content-Type"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Content-Type", "X-User-ID"},
 		AllowCredentials: true,
 	}))
 	

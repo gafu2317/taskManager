@@ -18,6 +18,11 @@ export const getTasksLocal = async (options: { completed?: boolean } = {}): Prom
   return tasks.filter(task => task.completed === options.completed);
 };
 
+// 統一API名
+export const getTasks = async (options: { completed?: boolean } = {}): Promise<Task[]> => {
+  return getTasksLocal(options);
+};
+
 export const createTaskLocal = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> => {
   const tasks = loadTasksFromLocal();
   const tags = loadTagsFromLocal();
@@ -37,6 +42,11 @@ export const createTaskLocal = async (taskData: Omit<Task, 'id' | 'createdAt' | 
   updateTagsLocal(newTask.tags, tags);
   
   return newTask;
+};
+
+// 統一API名
+export const createTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>): Promise<Task> => {
+  return createTaskLocal(taskData);
 };
 
 export const updateTaskLocal = async (id: string, updates: Partial<Task>): Promise<Task> => {
@@ -59,6 +69,11 @@ export const updateTaskLocal = async (id: string, updates: Partial<Task>): Promi
   return updatedTask;
 };
 
+// 統一API名
+export const updateTask = async (id: string, updates: Partial<Task>): Promise<Task> => {
+  return updateTaskLocal(id, updates);
+};
+
 export const deleteTaskLocal = async (id: string): Promise<void> => {
   const tasks = loadTasksFromLocal();
   const filteredTasks = tasks.filter(task => task.id !== id);
@@ -68,6 +83,11 @@ export const deleteTaskLocal = async (id: string): Promise<void> => {
   }
   
   saveTasksToLocal(filteredTasks);
+};
+
+// 統一API名
+export const deleteTask = async (id: string): Promise<void> => {
+  return deleteTaskLocal(id);
 };
 
 export const getTaskLocal = async (id: string): Promise<Task> => {
@@ -81,9 +101,20 @@ export const getTaskLocal = async (id: string): Promise<Task> => {
   return task;
 };
 
+// 統一API名
+export const getTask = async (id: string): Promise<Task> => {
+  return getTaskLocal(id);
+};
+
 // タグ関連API（LocalStorage版）
 export const getTagsLocal = async (): Promise<Tag[]> => {
   return loadTagsFromLocal();
+};
+
+// getTags API統一のため（string[]を返す版）
+export const getTags = async (): Promise<string[]> => {
+  const tags = loadTagsFromLocal();
+  return tags.map(tag => tag.name);
 };
 
 // タグの更新処理（内部関数）

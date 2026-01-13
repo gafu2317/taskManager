@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef} from "react";
 import { signIn, useSession } from "next-auth/react";
-import { migrateGuestDataToUser } from "../lib/authUtils";
+import { migrateGuestDataToCloud } from "../lib/authUtils";
 import { Task } from "../types/task";
 import { getTasks, deleteTask, updateTask } from "../lib/api";
 import TaskForm from "@/components/features/tasks/TaskForm";
@@ -27,26 +27,25 @@ export default function Home() {
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
   // ログイン状態変化時の処理
   useEffect(() => {
-    if (session?.user && (session.user as any).id) {
-      const userId = (session.user as any).id;
-      console.log('ユーザーログイン検出:', userId);
-      
-      // ゲストデータをユーザーアカウントに移行
-      migrateGuestDataToUser(userId);
-      
-      // タスクを再読み込み
-      const fetchTasks = async () => {
+    const handleLogin = async () => {
+      if (session?.user && (session.user as any).id) {
+        const userId = (session.user as any).id;
+        console.log('ユーザーログイン検出:', userId);
+        
         try {
+          // LocalStorageのゲストデータをDynamoDBに移行
+          await migrateGuestDataToCloud(userId);
+          
+          // タスクを再読み込み（DynamoDBから）
           const fetchedTasks = await getTasks({completed: false});
           setTasks(fetchedTasks);
         } catch (error) {
-          console.error("Failed to fetch tasks:", error);
-        } finally {
-          setLoading(false);
+          console.error("Failed to migrate or fetch tasks:", error);
         }
-      };
-      fetchTasks();
-    }
+      }
+    };
+
+    handleLogin();
   }, [session]);
 
   useEffect(() => {
