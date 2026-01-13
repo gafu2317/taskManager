@@ -31,9 +31,11 @@ export default function RootLayout({
       >
         <AuthSessionProvider>
           <header className="bg-blue-600 text-white shadow-md">
-            <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div className="max-w-7xl mx-auto px-4 py-4 relative flex justify-center items-center">
               <h1 className="text-2xl font-bold">Task Manager</h1>
-              <LoginButton />
+              <div className="absolute right-0">
+                <LoginButton />
+              </div>
             </div>
           </header>
           {children}
