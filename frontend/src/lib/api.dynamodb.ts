@@ -1,7 +1,7 @@
 import { Task } from '../types/task';
 import { getSession } from 'next-auth/react';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
 interface TasksResponse {
     tasks: Task[];
@@ -19,9 +19,9 @@ async function getAuthHeaders(): Promise<HeadersInit> {
     'Content-Type': 'application/json',
   };
   
-  if (session?.user && (session.user as any).id) {
-    headers['X-User-ID'] = (session.user as any).id;
-    console.log('Sending X-User-ID header:', (session.user as any).id);
+  if (session?.user && (session.user as { id?: string }).id) {
+    headers['X-User-ID'] = (session.user as { id: string }).id;
+    console.log('Sending X-User-ID header:', (session.user as { id: string }).id);
   } else {
     throw new Error('User not authenticated');
   }

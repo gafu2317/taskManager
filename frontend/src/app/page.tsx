@@ -28,8 +28,8 @@ export default function Home() {
   // ログイン状態変化時の処理
   useEffect(() => {
     const handleLogin = async () => {
-      if (session?.user && (session.user as any).id) {
-        const userId = (session.user as any).id;
+      if (session?.user && (session.user as { id?: string }).id) {
+        const userId = (session.user as { id: string }).id;
         console.log('ユーザーログイン検出:', userId);
         
         try {

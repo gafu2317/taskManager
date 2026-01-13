@@ -15,7 +15,7 @@ interface GetTasksOptions {
 // 認証状態に応じてAPIを切り替え
 async function getApiProvider() {
   const session = await getSession();
-  const isLoggedIn = !!(session?.user && (session.user as any).id);
+  const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
   
   if (isLoggedIn) {
     console.log('Using DynamoDB API (logged in)');
