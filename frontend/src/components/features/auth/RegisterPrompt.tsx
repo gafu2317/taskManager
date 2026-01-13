@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 interface RegisterPromptProps {
   taskCount: number;
@@ -7,7 +7,7 @@ interface RegisterPromptProps {
   isDismissed: boolean;
 }
 
-const RegisterPrompt = ({ taskCount, onRegisterClick, onDismiss, isDismissed }: RegisterPromptProps) => {
+const RegisterPrompt = ({ taskCount, onRegisterClick, onDismiss }: RegisterPromptProps) => {
 
   const bgColor = 'bg-blue-50 border-blue-200';
   const textColor = 'text-blue-800';
