@@ -30,8 +30,8 @@ export const createTaskLocal = async (taskData: Omit<Task, 'id' | 'createdAt' | 
   const newTask: Task = {
     ...taskData,
     id: generateId(),
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
   
   // タスクを保存
@@ -60,7 +60,7 @@ export const updateTaskLocal = async (id: string, updates: Partial<Task>): Promi
   const updatedTask = {
     ...tasks[taskIndex],
     ...updates,
-    updatedAt: new Date(),
+    updatedAt: new Date().toISOString(),
   };
   
   tasks[taskIndex] = updatedTask;

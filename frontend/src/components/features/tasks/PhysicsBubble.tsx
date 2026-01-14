@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react'
+import React, {useEffect, useRef} from 'react'
 import { Task } from '../../../types/task'
 import TaskBubble from './TaskBubble'
 import { getTaskBubbleRadius } from '../../../utils/taskUtils'
@@ -54,10 +54,9 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
       }
 
       setPosition((prev) => {
-        let radius = getTaskBubbleRadius(task.cost);
+        const radius = getTaskBubbleRadius(task.cost);
         let newX = prev.x + velocityRef.current.x;
         let newY = prev.y + velocityRef.current.y;
-        let collisionDetected = false;
         
         // 他の風船との衝突判定（壁より先に処理）
         const currentOtherBubbles = otherBubblesRef.current;
@@ -72,7 +71,6 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
             if(distance < minDistance && distance > 0) {
               
               // 衝突を避けるために位置を調整
-              const overlap = minDistance - distance;
               const normalX = dx / distance;
               const normalY = dy / distance;
               
@@ -84,7 +82,6 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
               velocityRef.current.x = -velocityRef.current.x;
               velocityRef.current.y = -velocityRef.current.y;
               
-              collisionDetected = true;
               break; // 一つの衝突だけ処理
             }
           }
@@ -117,7 +114,7 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
     
     animate(); // 常にアニメーションループを開始
     return () => cancelAnimationFrame(animattionId);
-  }, []);
+  }, [containerWidth, containerHeight, task.cost, task.id]);
 
   return (
   <>

@@ -224,7 +224,6 @@ export default function Home() {
       )}
       
       {/* 登録促進ポップアップ */}
-      {console.log('Render: showRegisterPopup =', showRegisterPopup)}
       {showRegisterPopup && (
         <div 
           className="fixed inset-0 flex items-center justify-center z-50"

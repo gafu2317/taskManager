@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState } from 'react'
 import { Task } from '../../../types/task'
 import { getTaskBubbleSize, getCostColor } from '../../../utils/taskUtils'
 

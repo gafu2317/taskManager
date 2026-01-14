@@ -33,7 +33,7 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
   const getOtherBubbles = (currentId: string) => {
     const others = Object.entries(bubblePositions)
       .filter(([id]) => id !== currentId)
-      .map(([_, pos]) => pos);
+      .map(([, pos]) => pos);
     return others;
   };
   // containerWidth と containerHeight は props から受け取る
