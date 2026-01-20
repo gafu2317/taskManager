@@ -333,8 +333,15 @@ func main() {
 	tagRepo := repository.NewTagRepository(dbClient.Client)
 
 	r := gin.Default()
+
+	// CORS設定（本番環境とローカル両対応）
+	allowedOrigins := []string{"http://localhost:3000"}
+	if prodOrigin := os.Getenv("FRONTEND_URL"); prodOrigin != "" {
+		allowedOrigins = append(allowedOrigins, prodOrigin)
+	}
+
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     allowedOrigins,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Content-Type", "X-User-ID"},
 		AllowCredentials: true,
