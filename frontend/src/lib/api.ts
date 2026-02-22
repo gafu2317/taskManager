@@ -9,6 +9,7 @@ import * as dynamoApi from './api.dynamodb';
 import { Task } from '../types/task';
 import { WorkSession } from '../types/session';
 import { BGMPreset } from '../types/bgmPreset';
+import { MascotData, PersonalityParams } from '../types/mascot';
 
 interface GetTasksOptions {
   completed?: boolean;
@@ -89,4 +90,63 @@ export async function deleteBGMPreset(presetId: string): Promise<void> {
   const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
   if (!isLoggedIn) return;
   return dynamoApi.deleteBGMPreset(presetId);
+}
+
+// マスコット（サーバーのみ・未ログイン時はデフォルト値を返す）
+const DEFAULT_MASCOT: MascotData = {
+  user_id: '',
+  current_points: 0,
+  total_earned_points: 0,
+  personality_params: { genki: 0, kibishisa: 0, amae: 0, tsundere: 0, majime: 0, tennen: 0 },
+  owned_accessories: [],
+  equipped_accessories: [],
+  last_login_date: '',
+  unlocked_slots: 1,
+  created_at: '',
+  updated_at: '',
+};
+
+export async function getMascot(slot = 1): Promise<MascotData> {
+  const session = await getSession();
+  const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
+  if (!isLoggedIn) return DEFAULT_MASCOT;
+  return dynamoApi.getMascot(slot);
+}
+
+export async function postMascotAction(
+  type: 'task_complete' | 'work_session' | 'login',
+  workSeconds?: number
+): Promise<void> {
+  const session = await getSession();
+  const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
+  if (!isLoggedIn) return;
+  await dynamoApi.postMascotAction(type, workSeconds);
+}
+
+export async function postMascotPersonality(params: PersonalityParams, slot = 1): Promise<MascotData> {
+  const session = await getSession();
+  const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
+  if (!isLoggedIn) return DEFAULT_MASCOT;
+  return dynamoApi.postMascotPersonality(params, slot);
+}
+
+export async function postMascotShopBuy(accessoryId: string, slot = 1): Promise<MascotData> {
+  const session = await getSession();
+  const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
+  if (!isLoggedIn) return DEFAULT_MASCOT;
+  return dynamoApi.postMascotShopBuy(accessoryId, slot);
+}
+
+export async function putMascotEquip(equipped: string[], slot = 1): Promise<MascotData> {
+  const session = await getSession();
+  const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
+  if (!isLoggedIn) return DEFAULT_MASCOT;
+  return dynamoApi.putMascotEquip(equipped, slot);
+}
+
+export async function unlockMascotSlot(slot: number): Promise<MascotData> {
+  const session = await getSession();
+  const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
+  if (!isLoggedIn) return DEFAULT_MASCOT;
+  return dynamoApi.unlockMascotSlot(slot);
 }

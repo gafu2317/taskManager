@@ -1,3 +1,29 @@
+# T05: フロントエンド - 型定義更新
+
+**依存**: なし（バックエンドと並行可能）
+**次のタスク**: T06
+
+---
+
+## 目的
+
+フロントエンドのマスコット関連の TypeScript 型定義を拡張する。
+
+## 変更するファイル
+
+**変更**: `frontend/src/types/mascot.ts`
+
+## 現在の内容
+
+```ts
+export type MascotMood = 'idle' | 'happy' | 'cheering' | 'working';
+```
+
+## 追加する型
+
+バックエンドの `models/mascot.go` と対応する型を追加する。
+
+```ts
 export type MascotMood = 'idle' | 'happy' | 'cheering' | 'working';
 
 export type PersonalityParams = {
@@ -17,17 +43,8 @@ export type MascotData = {
   owned_accessories: string[];
   equipped_accessories: string[];
   last_login_date: string;  // YYYY-MM-DD
-  unlocked_slots: number;   // 解放済みスロット数（スロット1のみ有効）
   created_at: string;
   updated_at: string;
-};
-
-export const MAX_SLOTS = 3;
-
-// スロット解放コスト（スロット番号 → pt）
-export const SLOT_UNLOCK_COSTS: Record<number, number> = {
-  2: 500,
-  3: 1000,
 };
 
 // アクセサリーID一覧（バックエンドの accessoryPrices と一致させる）
@@ -59,12 +76,12 @@ export type PersonalityParamInfo = {
 };
 
 export const PERSONALITY_PARAMS: PersonalityParamInfo[] = [
-  { key: 'genki',      name: '元気',     lowLabel: '穏やか',   highLabel: 'テンション高め' },
-  { key: 'kibishisa',  name: '厳しさ',   lowLabel: 'やさしい', highLabel: '叱咤激励' },
-  { key: 'amae',       name: '甘え',     lowLabel: 'クール',   highLabel: '懐いてくる' },
-  { key: 'tsundere',   name: 'ツンデレ', lowLabel: '素直',     highLabel: '素直じゃない' },
-  { key: 'majime',     name: '真面目',   lowLabel: '気まぐれ', highLabel: '実績・数値を引用' },
-  { key: 'tennen',     name: '天然',     lowLabel: '普通',     highLabel: '独自視点' },
+  { key: 'genki',      name: '元気',   lowLabel: '穏やか',   highLabel: 'テンション高め' },
+  { key: 'kibishisa',  name: '厳しさ', lowLabel: 'やさしい', highLabel: '叱咤激励' },
+  { key: 'amae',       name: '甘え',   lowLabel: 'クール',   highLabel: '懐いてくる' },
+  { key: 'tsundere',   name: 'ツンデレ', lowLabel: '素直',   highLabel: '素直じゃない' },
+  { key: 'majime',     name: '真面目', lowLabel: '気まぐれ', highLabel: '実績・数値を引用' },
+  { key: 'tennen',     name: '天然',   lowLabel: '普通',     highLabel: '独自視点' },
 ];
 
 // 性格パラメータのデフォルト値
@@ -76,3 +93,9 @@ export const DEFAULT_PERSONALITY_PARAMS: PersonalityParams = {
 export function calcPersonalityCost(params: PersonalityParams): number {
   return Object.values(params).reduce((sum, v) => sum + v, 0) * 10;
 }
+```
+
+## 完了条件
+
+- `frontend/src/types/mascot.ts` が上記の内容で更新されている
+- TypeScript のコンパイルエラーがない（`npx tsc --noEmit` で確認）

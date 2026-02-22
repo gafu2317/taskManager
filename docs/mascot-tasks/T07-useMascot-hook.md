@@ -1,3 +1,50 @@
+# T07: フロントエンド - useMascotフック拡張
+
+**依存**: T06（APIクライアント）
+**次のタスク**: T08, T09
+
+---
+
+## 目的
+
+`useMascot` フックを拡張して、サーバーからのマスコットデータ取得・操作を担う。
+現在のセリフ制御ロジックは残しつつ、`MascotData` を状態として管理する。
+
+## 変更するファイル
+
+**変更**: `frontend/src/hooks/useMascot.ts`
+
+---
+
+## 現在の実装（変更前）
+
+```ts
+// セリフ・表示制御のみ
+export function useMascot(mood: MascotMood) {
+  const [dialogue, setDialogue] = useState<string>('');
+  const [visible, setVisible] = useState(false);
+  // ...
+  return { dialogue, visible };
+}
+```
+
+---
+
+## 新しい設計
+
+`useMascot` を2つに分割する：
+
+1. **`useMascotDialogue(mood, params)`** - セリフ制御（既存ロジックを改名・拡張）
+2. **`useMascotData()`** - サーバーデータの取得・操作
+
+`WorkTimeView.tsx` は現在 `useMascot(mood)` を呼んでいるため、
+`useMascotDialogue` に改名して同じシグネチャで提供する。
+
+---
+
+## 実装内容
+
+```ts
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -9,7 +56,6 @@ import {
   postMascotPersonality,
   postMascotShopBuy,
   putMascotEquip,
-  unlockMascotSlot,
 } from '../lib/api';
 
 // ─── セリフ制御フック（既存の useMascot を改名） ───────────────────────
@@ -19,14 +65,12 @@ export function useMascotDialogue(mood: MascotMood, params?: PersonalityParams) 
   const [visible, setVisible] = useState(false);
   const prevMoodRef = useRef(mood);
 
-  // 初回マウント後にセリフをセット（SSR hydration mismatch 回避）
   useEffect(() => {
     setDialogue(getDialogue(mood));  // params は将来のセリフシステム拡張で使う
     setVisible(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ムードが変わったらセリフを更新
   useEffect(() => {
     if (prevMoodRef.current !== mood) {
       prevMoodRef.current = mood;
@@ -34,7 +78,6 @@ export function useMascotDialogue(mood: MascotMood, params?: PersonalityParams) 
     }
   }, [mood]);
 
-  // 12秒ごとにセリフをローテーション
   useEffect(() => {
     const interval = setInterval(() => {
       fadeAndChange(mood);
@@ -68,61 +111,55 @@ const DEFAULT_MASCOT_DATA: MascotData = {
   owned_accessories: [],
   equipped_accessories: [],
   last_login_date: '',
-  unlocked_slots: 1,
   created_at: '',
   updated_at: '',
 };
 
-export function useMascotData(slot = 1) {
+export function useMascotData() {
   const [mascotData, setMascotData] = useState<MascotData>(DEFAULT_MASCOT_DATA);
   const [loading, setLoading] = useState(true);
 
+  // 初回ロード + ログインボーナス付与
   useEffect(() => {
-    setLoading(true);
-    const load = async () => {
-      try {
-        if (slot === 1) {
-          const data = await getMascot(1);
-          setMascotData(data);
-          await postMascotAction('login');
-          const updated = await getMascot(1);
-          setMascotData(updated);
-        } else {
-          const data = await getMascot(slot);
-          setMascotData(data);
-        }
-      } catch {
-        // 未ログイン時はエラーを無視
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [slot]);
+    getMascot()
+      .then((data) => {
+        setMascotData(data);
+        // ログインボーナス（今日まだ付与していなければ）
+        return postMascotAction('login');
+      })
+      .then(() => getMascot())  // ログインボーナス付与後に再取得
+      .then(setMascotData)
+      .catch(() => {})  // 未ログイン時はエラーを無視
+      .finally(() => setLoading(false));
+  }, []);
 
+  // 性格パラメータ変更
   const updatePersonality = useCallback(async (params: PersonalityParams) => {
-    const updated = await postMascotPersonality(params, slot);
+    const updated = await postMascotPersonality(params);
     setMascotData(updated);
-  }, [slot]);
+  }, []);
 
+  // アクセサリー購入
   const buyAccessory = useCallback(async (accessoryId: string) => {
-    const updated = await postMascotShopBuy(accessoryId, slot);
+    const updated = await postMascotShopBuy(accessoryId);
     setMascotData(updated);
-  }, [slot]);
+  }, []);
 
+  // アクセサリー装備変更
   const updateEquip = useCallback(async (equipped: string[]) => {
-    const updated = await putMascotEquip(equipped, slot);
+    const updated = await putMascotEquip(equipped);
     setMascotData(updated);
-  }, [slot]);
+  }, []);
 
+  // ポイント付与（外部から呼ぶ用）
   const addPoints = useCallback(async (
     type: 'task_complete' | 'work_session',
     workSeconds?: number
   ) => {
     await postMascotAction(type, workSeconds);
-    const updated = await getMascot(slot);
+    const updated = await getMascot();
     setMascotData(updated);
-  }, [slot]);
+  }, []);
 
   return {
     mascotData,
@@ -133,3 +170,20 @@ export function useMascotData(slot = 1) {
     addPoints,
   };
 }
+```
+
+---
+
+## `WorkTimeView.tsx` の変更
+
+`useMascot` を `useMascotDialogue` に変更する必要はないが、
+`useMascotData` を使ってポイント付与の連携ができるようになる（T10で対応）。
+
+現状の `WorkTimeView.tsx` の `useMascot(worktimeMood)` の呼び出しは
+後方互換でそのまま動く。
+
+## 完了条件
+
+- `frontend/src/hooks/useMascot.ts` が更新されている
+- 既存の `WorkTimeView.tsx` が壊れていない（`useMascot` の後方互換が保たれている）
+- TypeScript のコンパイルエラーがない

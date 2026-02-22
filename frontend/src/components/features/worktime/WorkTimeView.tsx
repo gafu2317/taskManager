@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Task } from '@/types/task';
 import { WorkSession } from '@/types/session';
-import { createSession, getSessions } from '@/lib/api';
+import { createSession, getSessions, postMascotAction } from '@/lib/api';
 import Mascot from '@/components/features/mascot/Mascot';
 import { useMascot } from '@/hooks/useMascot';
 import { MascotMood } from '@/types/mascot';
@@ -145,6 +145,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
       });
       setSessionsByDate(prev => ({ ...prev, [date]: (prev[date] ?? 0) + finalWork }));
       setSessionDetailsByDate(prev => ({ ...prev, [date]: [...(prev[date] ?? []), newSession] }));
+      postMascotAction('work_session', finalWork).catch(() => {});
       onTaskUpdated();
     }
 

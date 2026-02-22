@@ -4,7 +4,7 @@ import { useState, useEffect, useRef} from "react";
 import { signIn, useSession } from "next-auth/react";
 import { migrateGuestDataToCloud } from "../lib/authUtils";
 import { Task } from "../types/task";
-import { getTasks, deleteTask, updateTask } from "../lib/api";
+import { getTasks, deleteTask, updateTask, postMascotAction } from "../lib/api";
 import TaskForm from "@/components/features/tasks/TaskForm";
 import TaskBubbleView from "@/components/features/tasks/TaskBubbleView";
 import TaskDetail from "@/components/features/tasks/TaskDetail";
@@ -13,6 +13,7 @@ import TaskFilterPanel from "@/components/features/tasks/TaskFilterPanel";
 import RegisterPrompt from "@/components/features/auth/RegisterPrompt";
 import WorkTimeView from "@/components/features/worktime/WorkTimeView";
 import Mascot from "@/components/features/mascot/Mascot";
+import MascotView from "@/components/features/mascot/MascotView";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 import { useMascot } from "../hooks/useMascot";
 import { getMood } from "../lib/mascotDialogue";
@@ -27,7 +28,7 @@ export default function Home() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRegisterPromptDismissed, setIsRegisterPromptDismissed] = useState(false);
   const [showRegisterPopup, setShowRegisterPopup] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tasks' | 'worktime'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'worktime' | 'mascot'>('tasks');
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
   const mood = getMood(tasks.length);
@@ -130,6 +131,7 @@ export default function Home() {
       setSelectedTaskId(null);
       
       await updateTask(taskId, { completed: true });
+      postMascotAction('task_complete').catch(() => {});
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
     } catch (error) {
       console.error("Failed to complete task:", error);
@@ -183,8 +185,9 @@ export default function Home() {
       {/* タブバー */}
       <div className="flex items-center gap-1 px-4 pt-2 bg-white border-b border-gray-200 shrink-0">
         {([
-          { key: 'tasks', label: 'タスク管理', icon: '📋' },
-          { key: 'worktime', label: '作業時間記録', icon: '⏱' },
+          { key: 'tasks',    label: 'タスク管理',     icon: '📋' },
+          { key: 'worktime', label: '作業時間記録',   icon: '⏱' },
+          { key: 'mascot',   label: 'キャラクター',   icon: '🐱' },
         ] as const).map(({ key, label, icon }) => (
           <button
             key={key}
@@ -256,6 +259,11 @@ export default function Home() {
       {/* 作業時間タブ */}
       {activeTab === 'worktime' && (
         <WorkTimeView tasks={tasks} onTaskUpdated={handleTaskUpdated} />
+      )}
+
+      {/* キャラクタータブ */}
+      {activeTab === 'mascot' && (
+        <MascotView />
       )}
 
       {/* タスク編集モーダル */}

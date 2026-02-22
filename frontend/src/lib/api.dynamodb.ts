@@ -1,6 +1,7 @@
 import { Task } from '../types/task';
 import { WorkSession } from '../types/session';
 import { BGMPreset } from '../types/bgmPreset';
+import { MascotData, PersonalityParams } from '../types/mascot';
 import { getSession } from 'next-auth/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
@@ -244,4 +245,77 @@ export async function deleteBGMPreset(presetId: string): Promise<void> {
     console.error('Error deleting BGM preset:', error);
     throw error;
   }
+}
+
+// マスコットデータ取得
+export async function getMascot(slot = 1): Promise<MascotData> {
+  const response = await fetch(`${API_BASE_URL}/mascot?slot=${slot}`, {
+    headers: await getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch mascot');
+  return response.json();
+}
+
+// ポイント付与アクション（常にスロット1）
+export async function postMascotAction(
+  type: 'task_complete' | 'work_session' | 'login',
+  workSeconds?: number
+): Promise<{ earned_points: number; current_points: number }> {
+  const response = await fetch(`${API_BASE_URL}/mascot/action`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ type, work_seconds: workSeconds ?? 0 }),
+  });
+  if (!response.ok) throw new Error('Failed to post mascot action');
+  return response.json();
+}
+
+// 性格パラメータ変更
+export async function postMascotPersonality(params: PersonalityParams, slot = 1): Promise<MascotData> {
+  const response = await fetch(`${API_BASE_URL}/mascot/personality?slot=${slot}`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ params }),
+  });
+  if (!response.ok) throw new Error('Failed to update personality');
+  return response.json();
+}
+
+// アクセサリー購入
+export async function postMascotShopBuy(accessoryId: string, slot = 1): Promise<MascotData> {
+  const response = await fetch(`${API_BASE_URL}/mascot/shop/buy?slot=${slot}`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ accessory_id: accessoryId }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? 'Failed to buy accessory');
+  }
+  return response.json();
+}
+
+// アクセサリー装備変更
+export async function putMascotEquip(equipped: string[], slot = 1): Promise<MascotData> {
+  const response = await fetch(`${API_BASE_URL}/mascot/equip?slot=${slot}`, {
+    method: 'PUT',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ equipped }),
+  });
+  if (!response.ok) throw new Error('Failed to update equip');
+  return response.json();
+}
+
+// スロット解放（スロット1のポイントを消費）
+export async function unlockMascotSlot(slot: number): Promise<MascotData> {
+  const response = await fetch(`${API_BASE_URL}/mascot/unlock`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ slot }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? 'Failed to unlock slot');
+  }
+  return response.json();
 }

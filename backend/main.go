@@ -9,6 +9,7 @@ import (
 	"my-webapp-backend/repository"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -397,6 +398,327 @@ func deleteBGMPreset(bgmRepo *repository.BGMRepository) gin.HandlerFunc {
 	}
 }
 
+var accessoryPrices = map[string]int{
+	"ribbon":  30,
+	"hat":     50,
+	"glasses": 80,
+	"scarf":   40,
+	"crown":   200,
+}
+
+// スロット解放コスト（スロット番号 → 必要ポイント）
+var slotUnlockCosts = map[int]int{
+	2: 500,
+	3: 1000,
+}
+
+const maxSlots = 3
+
+type mascotActionRequest struct {
+	Type        string `json:"type"`
+	WorkSeconds int    `json:"work_seconds"`
+}
+
+type personalityRequest struct {
+	Params models.PersonalityParams `json:"params"`
+}
+
+type shopBuyRequest struct {
+	AccessoryID string `json:"accessory_id"`
+}
+
+type equipRequest struct {
+	Equipped []string `json:"equipped"`
+}
+
+type unlockSlotRequest struct {
+	Slot int `json:"slot"`
+}
+
+// クエリパラメータ ?slot= を読む（デフォルト1）
+func getSlot(c *gin.Context) int {
+	s, err := strconv.Atoi(c.DefaultQuery("slot", "1"))
+	if err != nil || s < 1 {
+		return 1
+	}
+	return s
+}
+
+func getMascot(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+		mascot, err := mascotRepo.GetMascot(context.TODO(), userID, getSlot(c))
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get mascot"})
+			return
+		}
+		c.JSON(http.StatusOK, mascot)
+	}
+}
+
+func postMascotAction(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		var req mascotActionRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// ポイント付与・ログインボーナスは常にスロット1
+		mascot, err := mascotRepo.GetMascot(context.TODO(), userID, 1)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get mascot"})
+			return
+		}
+
+		earned := 0
+		today := time.Now().Format("2006-01-02")
+
+		switch req.Type {
+		case "task_complete":
+			earned = 10
+		case "work_session":
+			earned = (req.WorkSeconds / 1800) * 10
+		case "login":
+			if mascot.LastLoginDate != today {
+				earned = 5
+				mascot.LastLoginDate = today
+			}
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid action type"})
+			return
+		}
+
+		mascot.CurrentPoints += earned
+		mascot.TotalEarnedPoints += earned
+
+		if err := mascotRepo.SaveMascot(context.TODO(), userID, 1, mascot); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save mascot"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"earned_points":  earned,
+			"current_points": mascot.CurrentPoints,
+		})
+	}
+}
+
+func postMascotPersonality(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		var req personalityRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		p := req.Params
+		if p.Genki < 0 || p.Genki > 10 ||
+			p.Kibishisa < 0 || p.Kibishisa > 10 ||
+			p.Amae < 0 || p.Amae > 10 ||
+			p.Tsundere < 0 || p.Tsundere > 10 ||
+			p.Majime < 0 || p.Majime > 10 ||
+			p.Tennen < 0 || p.Tennen > 10 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "each parameter must be between 0 and 10"})
+			return
+		}
+
+		slot := getSlot(c)
+		mascot, err := mascotRepo.GetMascot(context.TODO(), userID, slot)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get mascot"})
+			return
+		}
+
+		old := mascot.PersonalityParams
+		oldCost := (old.Genki + old.Kibishisa + old.Amae + old.Tsundere + old.Majime + old.Tennen) * 10
+		newCost := (p.Genki + p.Kibishisa + p.Amae + p.Tsundere + p.Majime + p.Tennen) * 10
+		diff := newCost - oldCost
+
+		if mascot.CurrentPoints-diff < 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "not enough points"})
+			return
+		}
+
+		mascot.PersonalityParams = p
+		mascot.CurrentPoints -= diff
+
+		if err := mascotRepo.SaveMascot(context.TODO(), userID, slot, mascot); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save mascot"})
+			return
+		}
+
+		c.JSON(http.StatusOK, mascot)
+	}
+}
+
+func postMascotShopBuy(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		var req shopBuyRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		price, ok := accessoryPrices[req.AccessoryID]
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid accessory_id"})
+			return
+		}
+
+		slot := getSlot(c)
+		mascot, err := mascotRepo.GetMascot(context.TODO(), userID, slot)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get mascot"})
+			return
+		}
+
+		for _, id := range mascot.OwnedAccessories {
+			if id == req.AccessoryID {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "already owned"})
+				return
+			}
+		}
+
+		if mascot.CurrentPoints < price {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "not enough points"})
+			return
+		}
+
+		mascot.CurrentPoints -= price
+		mascot.OwnedAccessories = append(mascot.OwnedAccessories, req.AccessoryID)
+
+		if err := mascotRepo.SaveMascot(context.TODO(), userID, slot, mascot); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save mascot"})
+			return
+		}
+
+		c.JSON(http.StatusOK, mascot)
+	}
+}
+
+func putMascotEquip(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		var req equipRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		slot := getSlot(c)
+		mascot, err := mascotRepo.GetMascot(context.TODO(), userID, slot)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get mascot"})
+			return
+		}
+
+		ownedSet := make(map[string]bool)
+		for _, id := range mascot.OwnedAccessories {
+			ownedSet[id] = true
+		}
+		for _, id := range req.Equipped {
+			if !ownedSet[id] {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "accessory not owned: " + id})
+				return
+			}
+		}
+
+		mascot.EquippedAccessories = req.Equipped
+
+		if err := mascotRepo.SaveMascot(context.TODO(), userID, slot, mascot); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save mascot"})
+			return
+		}
+
+		c.JSON(http.StatusOK, mascot)
+	}
+}
+
+func postMascotUnlock(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		var req unlockSlotRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		if req.Slot < 2 || req.Slot > maxSlots {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid slot number"})
+			return
+		}
+
+		cost, ok := slotUnlockCosts[req.Slot]
+		if !ok {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid slot number"})
+			return
+		}
+
+		// スロット1からポイントを消費して解放
+		slot1, err := mascotRepo.GetMascot(context.TODO(), userID, 1)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get mascot"})
+			return
+		}
+
+		if slot1.UnlockedSlots >= req.Slot {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "slot already unlocked"})
+			return
+		}
+		if req.Slot != slot1.UnlockedSlots+1 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "must unlock slots in order"})
+			return
+		}
+		if slot1.CurrentPoints < cost {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "not enough points"})
+			return
+		}
+
+		slot1.CurrentPoints -= cost
+		slot1.UnlockedSlots = req.Slot
+
+		if err := mascotRepo.SaveMascot(context.TODO(), userID, 1, slot1); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save mascot"})
+			return
+		}
+
+		c.JSON(http.StatusOK, slot1)
+	}
+}
+
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "ok",
@@ -415,6 +737,7 @@ func main() {
 	tagRepo := repository.NewTagRepository(dbClient.Client, tableName)
 	sessionRepo := repository.NewSessionRepository(dbClient.Client, tableName)
 	bgmRepo := repository.NewBGMRepository(dbClient.Client, tableName)
+	mascotRepo := repository.NewMascotRepository(dbClient.Client, tableName)
 
 	r := gin.Default()
 
@@ -442,6 +765,12 @@ func main() {
 	r.POST("/bgm-presets", createBGMPreset(bgmRepo))
 	r.GET("/bgm-presets", getBGMPresets(bgmRepo))
 	r.DELETE("/bgm-preset/:id", deleteBGMPreset(bgmRepo))
+	r.GET("/mascot", getMascot(mascotRepo))
+	r.POST("/mascot/action", postMascotAction(mascotRepo))
+	r.POST("/mascot/personality", postMascotPersonality(mascotRepo))
+	r.POST("/mascot/shop/buy", postMascotShopBuy(mascotRepo))
+	r.PUT("/mascot/equip", putMascotEquip(mascotRepo))
+	r.POST("/mascot/unlock", postMascotUnlock(mascotRepo))
 
 	port := os.Getenv("PORT")
 	if port == "" {
