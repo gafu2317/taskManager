@@ -193,6 +193,17 @@ func getTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	}
 }
 
+type updateTaskRequest struct {
+	Title          string   `json:"title"`
+	Description    string   `json:"description"`
+	Importance     int      `json:"importance"`
+	Cost           int      `json:"cost"`
+	Tags           []string `json:"tags"`
+	Completed      *bool    `json:"completed"`
+	TotalWorkTime  int      `json:"total_work_time"`
+	TotalBreakTime int      `json:"total_break_time"`
+}
+
 func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// ユーザーIDをヘッダーから取得
@@ -205,7 +216,7 @@ func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 		id := c.Param("id")
 
 		//更新データを受け取る構造体
-		var updatedData models.Task
+		var updatedData updateTaskRequest
 		if err := c.ShouldBindJSON(&updatedData); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -217,7 +228,7 @@ func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get task"})
 			return
 		}
-		
+
 		if existingTask == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 			return
@@ -245,7 +256,15 @@ func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 		if updatedData.Tags != nil {
 			existingTask.Tags = updatedData.Tags
 		}
-		existingTask.Completed = updatedData.Completed
+		if updatedData.Completed != nil {
+			existingTask.Completed = *updatedData.Completed
+		}
+		if updatedData.TotalWorkTime > 0 {
+			existingTask.TotalWorkTime = updatedData.TotalWorkTime
+		}
+		if updatedData.TotalBreakTime > 0 {
+			existingTask.TotalBreakTime = updatedData.TotalBreakTime
+		}
 		existingTask.UpdatedAt = time.Now()
 
 		// DynamoDBに保存

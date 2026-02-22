@@ -233,7 +233,7 @@ export default function Home() {
           <div className="w-1/5 bg-white border-l border-gray-200 p-6">
             <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク詳細</h2>
             {selectedTask ? (
-              <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} />
+              <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} onTaskComplete={handleTaskComplete} />
             ) : (
               <p className="text-gray-500">タスクバブルをクリックして詳細を表示</p>
             )}
@@ -243,7 +243,7 @@ export default function Home() {
 
       {/* 作業時間タブ */}
       {activeTab === 'worktime' && (
-        <WorkTimeView />
+        <WorkTimeView tasks={tasks} onTaskUpdated={handleTaskUpdated} />
       )}
 
       {/* タスク編集モーダル */}
