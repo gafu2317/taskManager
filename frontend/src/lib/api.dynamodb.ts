@@ -1,5 +1,6 @@
 import { Task } from '../types/task';
 import { WorkSession } from '../types/session';
+import { BGMPreset } from '../types/bgmPreset';
 import { getSession } from 'next-auth/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
@@ -198,6 +199,49 @@ export async function getSessions(dateFrom?: string, dateTo?: string): Promise<W
     return (data.sessions ?? []).map(toWorkSession);
   } catch (error) {
     console.error('Error fetching sessions:', error);
+    throw error;
+  }
+}
+
+// BGMプリセットAPI
+export async function getBGMPresets(): Promise<BGMPreset[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bgm-presets`, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to fetch BGM presets');
+    const data: { presets: BGMPreset[] } = await response.json();
+    return data.presets ?? [];
+  } catch (error) {
+    console.error('Error fetching BGM presets:', error);
+    throw error;
+  }
+}
+
+export async function createBGMPreset(label: string, videoId: string): Promise<BGMPreset> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bgm-presets`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ label, video_id: videoId }),
+    });
+    if (!response.ok) throw new Error('Failed to create BGM preset');
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating BGM preset:', error);
+    throw error;
+  }
+}
+
+export async function deleteBGMPreset(presetId: string): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/bgm-preset/${presetId}`, {
+      method: 'DELETE',
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) throw new Error('Failed to delete BGM preset');
+  } catch (error) {
+    console.error('Error deleting BGM preset:', error);
     throw error;
   }
 }

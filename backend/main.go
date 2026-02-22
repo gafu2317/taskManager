@@ -329,6 +329,74 @@ func getSessions(sessionRepo *repository.SessionRepository) gin.HandlerFunc {
 	}
 }
 
+func createBGMPreset(bgmRepo *repository.BGMRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		var req struct {
+			Label   string `json:"label"`
+			VideoID string `json:"video_id"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil || req.Label == "" || req.VideoID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "label and video_id are required"})
+			return
+		}
+
+		preset := &models.BGMPreset{
+			PresetID:  fmt.Sprintf("%d", time.Now().UnixNano()),
+			Label:     req.Label,
+			VideoID:   req.VideoID,
+			CreatedAt: time.Now(),
+		}
+		if err := bgmRepo.CreatePreset(context.TODO(), userID, preset); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create preset"})
+			return
+		}
+		c.JSON(http.StatusCreated, preset)
+	}
+}
+
+func getBGMPresets(bgmRepo *repository.BGMRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		presets, err := bgmRepo.GetPresets(context.TODO(), userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get presets"})
+			return
+		}
+		if presets == nil {
+			presets = []models.BGMPreset{}
+		}
+		c.JSON(http.StatusOK, gin.H{"presets": presets})
+	}
+}
+
+func deleteBGMPreset(bgmRepo *repository.BGMRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		presetID := c.Param("id")
+		if err := bgmRepo.DeletePreset(context.TODO(), userID, presetID); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete preset"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "deleted"})
+	}
+}
+
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "ok",
@@ -346,6 +414,7 @@ func main() {
 	taskRepo := repository.NewTaskRepository(dbClient.Client, tableName)
 	tagRepo := repository.NewTagRepository(dbClient.Client, tableName)
 	sessionRepo := repository.NewSessionRepository(dbClient.Client, tableName)
+	bgmRepo := repository.NewBGMRepository(dbClient.Client, tableName)
 
 	r := gin.Default()
 
@@ -370,6 +439,9 @@ func main() {
 	r.GET("/tags", getTags(tagRepo))
 	r.POST("/sessions", createSession(sessionRepo, taskRepo))
 	r.GET("/sessions", getSessions(sessionRepo))
+	r.POST("/bgm-presets", createBGMPreset(bgmRepo))
+	r.GET("/bgm-presets", getBGMPresets(bgmRepo))
+	r.DELETE("/bgm-preset/:id", deleteBGMPreset(bgmRepo))
 
 	port := os.Getenv("PORT")
 	if port == "" {

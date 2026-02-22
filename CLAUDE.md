@@ -5,9 +5,21 @@
 - **目的**: Web開発技術スタックの学習・実践
 - **技術**: Go + Next.js + DynamoDB + AWS
 
+## インフラ構成
+- **バックエンド**: Google Cloud Run にデプロイ済み
+  - URL: `https://task-manager-backend-1008994672672.asia-northeast1.run.app`
+  - バックエンドのコードを変更したら必ず以下でデプロイすること（ローカル再起動では反映されない）：
+    ```bash
+    cd backend
+    gcloud run deploy task-manager-backend --source . --region asia-northeast1
+    ```
+- **データベース**: AWS DynamoDB（本番）/ DynamoDB Local（ポート8001、開発時のみ）
+- **フロントエンド**: ローカル開発は `localhost:3000`、API向き先は `.env.local` の `NEXT_PUBLIC_API_BASE_URL`
+
 ## TODO
 - [ ] マスコット育成機能
 - [ ] タグの提案機能
+- [ ] Cloud RunからLambdaに移行
 
 ## フロントエンドの規定
 ---
