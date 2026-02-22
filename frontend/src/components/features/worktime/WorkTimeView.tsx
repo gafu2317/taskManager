@@ -180,10 +180,10 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   });
 
   return (
-    <div className="flex flex-1 items-start pt-10 p-8 bg-gray-50">
+    <div className="flex flex-1 items-stretch pt-10 p-8 bg-gray-50">
 
       {/* BGMプレイヤー */}
-      <div className="flex-1 flex pr-8">
+      <div className="flex-1 flex flex-col pr-8">
         <BGMPlayer />
       </div>
 

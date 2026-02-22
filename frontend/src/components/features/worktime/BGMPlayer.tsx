@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useSession } from 'next-auth/react';
 import { BGMPreset } from '@/types/bgmPreset';
 import { getBGMPresets, createBGMPreset, deleteBGMPreset } from '@/lib/api';
 
@@ -37,6 +38,9 @@ function extractVideoId(input: string): string | null {
 }
 
 export default function BGMPlayer() {
+  const { data: session } = useSession();
+  const isLoggedIn = !!(session?.user as { id?: string })?.id;
+
   const [currentSource, setCurrentSource] = useState<CurrentSource>(
     { kind: 'builtin', videoId: PRESETS[0].videoId }
   );
@@ -44,37 +48,35 @@ export default function BGMPlayer() {
   const [volume, setVolume] = useState(50);
   const [urlInput, setUrlInput] = useState('');
 
-  // ユーザープリセット
   const [userPresets, setUserPresets] = useState<BGMPreset[]>([]);
   const [savingLabel, setSavingLabel] = useState('');
   const [showSaveForm, setShowSaveForm] = useState(false);
 
   const playerRef = useRef<any>(null);
-  const playerDivRef = useRef<HTMLDivElement>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
   const apiReadyRef = useRef(false);
 
-  // ユーザープリセット取得
   useEffect(() => {
     getBGMPresets().then(setUserPresets).catch(() => {});
   }, []);
 
   const initPlayer = (vid: string) => {
-    if (!window.YT || !playerDivRef.current) return;
+    if (!window.YT || !playerContainerRef.current) return;
     if (playerRef.current) {
       playerRef.current.destroy();
+      playerRef.current = null;
     }
-    playerRef.current = new window.YT.Player(playerDivRef.current, {
+    const div = document.createElement('div');
+    playerContainerRef.current.innerHTML = '';
+    playerContainerRef.current.appendChild(div);
+    playerRef.current = new window.YT.Player(div, {
       width: 1,
       height: 1,
       videoId: vid,
       playerVars: { controls: 0, autoplay: 0, modestbranding: 1 },
       events: {
-        onReady: (e: any) => {
-          e.target.setVolume(volume);
-        },
-        onStateChange: (e: any) => {
-          setIsPlaying(e.data === 1);
-        },
+        onReady: (e: any) => { e.target.setVolume(volume); },
+        onStateChange: (e: any) => { setIsPlaying(e.data === 1); },
       },
     });
   };
@@ -86,7 +88,6 @@ export default function BGMPlayer() {
       initPlayer(initialVideoId);
       return;
     }
-
     const existing = document.getElementById('yt-iframe-api');
     if (!existing) {
       const script = document.createElement('script');
@@ -94,15 +95,16 @@ export default function BGMPlayer() {
       script.src = 'https://www.youtube.com/iframe_api';
       document.head.appendChild(script);
     }
-
     const prev = window.onYouTubeIframeAPIReady;
     window.onYouTubeIframeAPIReady = () => {
       if (prev) prev();
       apiReadyRef.current = true;
       initPlayer(initialVideoId);
     };
-
-    return () => {};
+    return () => {
+      playerRef.current?.destroy();
+      playerRef.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -118,11 +120,8 @@ export default function BGMPlayer() {
 
   const togglePlay = () => {
     if (!playerRef.current) return;
-    if (isPlaying) {
-      playerRef.current.pauseVideo();
-    } else {
-      playerRef.current.playVideo();
-    }
+    if (isPlaying) playerRef.current.pauseVideo();
+    else playerRef.current.playVideo();
   };
 
   const handleVolume = (v: number) => {
@@ -161,23 +160,17 @@ export default function BGMPlayer() {
     }
   };
 
-  // 保存
   const handleSave = async () => {
     const label = savingLabel.trim();
     const vid = currentSource?.videoId ?? null;
     if (!label || !vid) return;
     const saved = await createBGMPreset(label, vid);
-    if (saved) {
-      setUserPresets(prev => [...prev, saved]);
-    }
+    if (saved) setUserPresets(prev => [...prev, saved]);
     setSavingLabel('');
     setShowSaveForm(false);
-    if (currentSource?.kind === 'url') {
-      setUrlInput('');
-    }
+    if (currentSource?.kind === 'url') setUrlInput('');
   };
 
-  // 削除
   const handleDelete = async (presetId: string) => {
     await deleteBGMPreset(presetId);
     setUserPresets(prev => prev.filter(p => p.preset_id !== presetId));
@@ -188,118 +181,86 @@ export default function BGMPlayer() {
     }
   };
 
+  const nowPlayingLabel =
+    currentSource?.kind === 'builtin'
+      ? PRESETS.find(p => p.videoId === currentSource.videoId)?.label ?? '—'
+      : currentSource?.kind === 'user'
+      ? userPresets.find(p => p.preset_id === currentSource.presetId)?.label ?? '—'
+      : currentSource?.kind === 'url' ? 'カスタム URL'
+      : '選択なし';
+
   const canPlay = currentSource !== null;
-  const canSave = currentSource !== null;
+  const canSave = currentSource !== null && isLoggedIn;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 w-full">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 w-full flex-1 flex flex-col">
+
       <p className="text-sm font-medium text-gray-500 mb-4">🎵 BGM</p>
 
       {/* 組み込みプリセット */}
-      <p className="text-xs text-gray-400 mb-1.5">プリセット</p>
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {PRESETS.map(preset => (
-          <button
-            key={preset.videoId}
-            onClick={() => handleBuiltinClick(preset.videoId)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-              currentSource?.kind === 'builtin' && currentSource.videoId === preset.videoId
-                ? 'bg-blue-500 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {preset.label}
-          </button>
-        ))}
+      <p className="text-xs text-gray-400 mb-2">プリセット</p>
+      <div className="flex gap-2 flex-wrap mb-4">
+        {PRESETS.map(preset => {
+          const active = currentSource?.kind === 'builtin' && currentSource.videoId === preset.videoId;
+          return (
+            <button
+              key={preset.videoId}
+              onClick={() => handleBuiltinClick(preset.videoId)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                active ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
       </div>
 
-      {/* マイプリセット（常に表示） */}
-      <p className="text-xs text-gray-400 mb-1.5">マイプリセット</p>
-      <div className="flex gap-2 mb-4 flex-wrap min-h-[28px] items-center">
+      {/* マイプリセット */}
+      <p className="text-xs text-gray-400 mb-2">マイプリセット</p>
+      <div className="max-h-24 overflow-y-auto mb-2">
         {userPresets.length === 0 ? (
-          <span className="text-xs text-gray-300">保存済みプリセットなし</span>
+          <p className="text-xs text-gray-300">保存済みプリセットなし</p>
         ) : (
-          userPresets.map(preset => (
-            <div key={preset.preset_id} className="flex items-center gap-0.5">
-              <button
-                onClick={() => handleUserPresetClick(preset)}
-                className={`px-3 py-1.5 rounded-l-lg text-xs font-medium transition-all ${
-                  currentSource?.kind === 'user' && currentSource.presetId === preset.preset_id
-                    ? 'bg-violet-500 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {preset.label}
-              </button>
-              <button
-                onClick={() => handleDelete(preset.preset_id)}
-                className="px-1.5 py-1.5 rounded-r-lg text-xs bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-400 transition-all"
-              >
-                ×
-              </button>
-            </div>
-          ))
+          <div className="flex gap-2 flex-wrap">
+            {userPresets.map(preset => {
+              const active = currentSource?.kind === 'user' && currentSource.presetId === preset.preset_id;
+              return (
+                <div key={preset.preset_id} className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => handleUserPresetClick(preset)}
+                    className={`px-3 py-1.5 rounded-l-lg text-xs font-medium transition-all ${
+                      active ? 'bg-violet-500 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(preset.preset_id)}
+                    className="px-1.5 py-1.5 rounded-r-lg text-xs bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-400 transition-all"
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* URL入力 */}
-      <input
-        type="text"
-        value={urlInput}
-        onChange={e => handleUrlChange(e.target.value)}
-        placeholder="YouTube URL / IDを追加"
-        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-300 mb-2 placeholder:text-gray-400"
-      />
-
-      {/* 保存フォーム */}
-      {canSave && (
-        showSaveForm ? (
-          <div className="flex gap-2 mb-3">
-            <input
-              type="text"
-              value={savingLabel}
-              onChange={e => setSavingLabel(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setShowSaveForm(false); }}
-              placeholder="プリセット名"
-              autoFocus
-              className="flex-1 px-3 py-1.5 text-xs border border-violet-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-300 placeholder:text-gray-400"
-            />
-            <button
-              onClick={handleSave}
-              disabled={!savingLabel.trim()}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-40 transition-all"
-            >
-              保存
-            </button>
-            <button
-              onClick={() => setShowSaveForm(false)}
-              className="px-2 py-1.5 rounded-lg text-xs text-gray-400 hover:text-gray-600 transition-all"
-            >
-              ×
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setShowSaveForm(true)}
-            className="text-xs text-violet-500 hover:text-violet-700 mb-3 transition-all"
-          >
-            ＋ 現在の曲をマイプリセットに保存
-          </button>
-        )
-      )}
-
-      {/* 再生コントロール */}
-      <div className="flex items-center gap-3">
+      {/* 再生ボタンを上下中央に固定 */}
+      <div className="flex flex-col items-center gap-3 py-4">
+        <p className="text-xs text-gray-400">{nowPlayingLabel}</p>
         <button
           onClick={togglePlay}
           disabled={!canPlay}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 hover:bg-blue-600 text-white text-sm transition-all shadow-sm shrink-0 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+          className="w-16 h-16 rounded-full flex items-center justify-center text-2xl text-white transition-all
+            bg-blue-500 hover:bg-blue-600 active:scale-95 shadow-md
+            disabled:bg-gray-200 disabled:text-gray-400 disabled:shadow-none disabled:cursor-not-allowed"
         >
           {isPlaying ? '⏸' : '▶'}
         </button>
-
-        {/* 音量スライダー */}
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+        <div className="flex items-center gap-2 w-full">
           <span className="text-gray-400 text-xs shrink-0">🔊</span>
           <input
             type="range"
@@ -312,8 +273,53 @@ export default function BGMPlayer() {
         </div>
       </div>
 
-      {/* 非表示プレイヤー */}
-      <div ref={playerDivRef} className="absolute pointer-events-none opacity-0 w-px h-px overflow-hidden" />
+      {/* URL入力・保存 */}
+      <div className="space-y-2 pb-4 mt-8">
+        <input
+          type="text"
+          value={urlInput}
+          onChange={e => handleUrlChange(e.target.value)}
+          placeholder="YouTube URL / IDを追加"
+          className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder:text-gray-400"
+        />
+        {canSave && (
+          showSaveForm ? (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={savingLabel}
+                onChange={e => setSavingLabel(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setShowSaveForm(false); }}
+                placeholder="プリセット名"
+                autoFocus
+                className="flex-1 px-3 py-1.5 text-xs border border-violet-300 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-300 placeholder:text-gray-400"
+              />
+              <button
+                onClick={handleSave}
+                disabled={!savingLabel.trim()}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-violet-500 text-white hover:bg-violet-600 disabled:opacity-40 transition-all"
+              >
+                保存
+              </button>
+              <button
+                onClick={() => setShowSaveForm(false)}
+                className="px-2 py-1.5 text-xs text-gray-400 hover:text-gray-600 transition-all"
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowSaveForm(true)}
+              className="text-xs text-violet-500 hover:text-violet-700 transition-all"
+            >
+              ＋ 現在の曲をマイプリセットに保存
+            </button>
+          )
+        )}
+      </div>
+
+      <div ref={playerContainerRef} className="absolute pointer-events-none opacity-0 w-px h-px overflow-hidden" />
     </div>
   );
 }
