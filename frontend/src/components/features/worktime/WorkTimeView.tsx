@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { Task } from '@/types/task';
 import { WorkSession } from '@/types/session';
 import { createSession, getSessions } from '@/lib/api';
+import Mascot from '@/components/features/mascot/Mascot';
+import { useMascot } from '@/hooks/useMascot';
+import { MascotMood } from '@/types/mascot';
 
 type TimerState = 'idle' | 'working' | 'on_break';
 
@@ -62,6 +65,9 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
 
   const selectedTask = tasks.find(t => t.id === selectedTaskId);
+
+  const worktimeMood: MascotMood = timerState === 'working' ? 'working' : 'idle';
+  const { dialogue, visible } = useMascot(worktimeMood);
 
   useEffect(() => {
     const dates = getDateRange(WEEKS);
@@ -241,8 +247,8 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
         </div>
       </div>
 
-      {/* 右スペーサー（カレンダー） */}
-      <div className="flex-1 flex justify-start pl-8">
+      {/* 右列（カレンダー＋マスコット） */}
+      <div className="flex-1 flex flex-col justify-center items-center gap-4">
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 shrink-0">
         <p className="text-sm font-medium text-gray-500 mb-3">作業記録</p>
 
@@ -297,6 +303,11 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
         </div>
 
       </div>
+
+      <div className="w-80">
+        <Mascot mood={worktimeMood} dialogue={dialogue} visible={visible} />
+      </div>
+
       </div>
 
       {/* ポップアップ */}

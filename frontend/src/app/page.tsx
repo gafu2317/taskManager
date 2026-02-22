@@ -15,6 +15,7 @@ import WorkTimeView from "@/components/features/worktime/WorkTimeView";
 import Mascot from "@/components/features/mascot/Mascot";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 import { useMascot } from "../hooks/useMascot";
+import { getMood } from "../lib/mascotDialogue";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -29,7 +30,8 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'worktime'>('tasks');
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
-  const { mood, dialogue, visible } = useMascot(tasks.length);
+  const mood = getMood(tasks.length);
+  const { dialogue, visible } = useMascot(mood);
   // ログイン状態変化時の処理
   useEffect(() => {
     const handleLogin = async () => {

@@ -1,6 +1,12 @@
 import { MascotMood } from '../types/mascot';
 
 const dialogues: Record<MascotMood, string[]> = {
+  working: [
+    '一緒に頑張ろう！',
+    '集中してるね！',
+    'ファイト！',
+    'いい感じ！',
+  ],
   idle: [
     'やること、あった気がするんだけどな…',
     'ちょっと一息ついてもいいかも',

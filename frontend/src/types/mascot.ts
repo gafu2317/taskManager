@@ -1,1 +1,1 @@
-export type MascotMood = 'idle' | 'happy' | 'cheering';
+export type MascotMood = 'idle' | 'happy' | 'cheering' | 'working';

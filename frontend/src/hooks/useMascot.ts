@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MascotMood } from '../types/mascot';
-import { getDialogue, getMood } from '../lib/mascotDialogue';
+import { getDialogue } from '../lib/mascotDialogue';
 
-export function useMascot(taskCount: number) {
-  const mood = getMood(taskCount);
+export function useMascot(mood: MascotMood) {
   const [dialogue, setDialogue] = useState<string>(() => getDialogue(mood));
   const [visible, setVisible] = useState(true);
+  const prevMoodRef = useRef(mood);
 
-  // タスク数が変わったらセリフを更新
+  // ムードが変わったらセリフを更新
   useEffect(() => {
-    fadeAndChange(getMood(taskCount));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [taskCount]);
+    if (prevMoodRef.current !== mood) {
+      prevMoodRef.current = mood;
+      fadeAndChange(mood);
+    }
+  }, [mood]);
 
   // 12秒ごとにセリフをローテーション
   useEffect(() => {
@@ -29,5 +31,5 @@ export function useMascot(taskCount: number) {
     }, 200);
   }
 
-  return { mood, dialogue, visible };
+  return { dialogue, visible };
 }
