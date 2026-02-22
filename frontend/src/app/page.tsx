@@ -12,6 +12,7 @@ import TaskEditModal from "@/components/features/tasks/TaskEditModal";
 import TaskFilterPanel from "@/components/features/tasks/TaskFilterPanel";
 import RegisterPrompt from "@/components/features/auth/RegisterPrompt";
 import WorkTimeView from "@/components/features/worktime/WorkTimeView";
+import Mascot from "@/components/features/mascot/Mascot";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 
 export default function Home() {
@@ -174,7 +175,7 @@ export default function Home() {
   const selectedTask = tasks?.find(task => task.id === selectedTaskId);
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col flex-1 bg-gray-50 overflow-hidden">
       {/* タブバー */}
       <div className="flex items-center gap-1 px-4 pt-2 bg-white border-b border-gray-200 shrink-0">
         {([
@@ -230,13 +231,16 @@ export default function Home() {
           </div>
 
           {/* 右列 - タスク詳細 (20%) */}
-          <div className="w-1/5 bg-white border-l border-gray-200 p-6">
+          <div className="w-1/5 bg-white border-l border-gray-200 p-6 flex flex-col overflow-hidden relative">
             <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク詳細</h2>
             {selectedTask ? (
               <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} onTaskComplete={handleTaskComplete} />
             ) : (
               <p className="text-gray-500">タスクバブルをクリックして詳細を表示</p>
             )}
+            <div className="absolute bottom-6 inset-x-6">
+              <Mascot />
+            </div>
           </div>
         </div>
       )}

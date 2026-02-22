@@ -30,15 +30,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthSessionProvider>
-          <header className="bg-blue-600 text-white shadow-md">
-            <div className="max-w-7xl mx-auto px-4 py-4 relative flex justify-center items-center">
-              <h1 className="text-2xl font-bold">Task Manager</h1>
-              <div className="absolute right-0">
-                <LoginButton />
+          <div className="flex flex-col h-screen">
+            <header className="bg-blue-600 text-white shadow-md shrink-0">
+              <div className="max-w-7xl mx-auto px-4 py-4 relative flex justify-center items-center">
+                <h1 className="text-2xl font-bold">Task Manager</h1>
+                <div className="absolute right-0">
+                  <LoginButton />
+                </div>
               </div>
-            </div>
-          </header>
-          {children}
+            </header>
+            {children}
+          </div>
         </AuthSessionProvider>
       </body>
     </html>
