@@ -14,6 +14,7 @@ import RegisterPrompt from "@/components/features/auth/RegisterPrompt";
 import WorkTimeView from "@/components/features/worktime/WorkTimeView";
 import Mascot from "@/components/features/mascot/Mascot";
 import { useTaskFilter } from "../hooks/useTaskFilter";
+import { useMascot } from "../hooks/useMascot";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -28,6 +29,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'worktime'>('tasks');
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
+  const { mood, dialogue, visible } = useMascot(tasks.length);
   // ログイン状態変化時の処理
   useEffect(() => {
     const handleLogin = async () => {
@@ -231,15 +233,19 @@ export default function Home() {
           </div>
 
           {/* 右列 - タスク詳細 (20%) */}
-          <div className="w-1/5 bg-white border-l border-gray-200 p-6 flex flex-col overflow-hidden relative">
-            <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク詳細</h2>
-            {selectedTask ? (
-              <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} onTaskComplete={handleTaskComplete} />
-            ) : (
-              <p className="text-gray-500">タスクバブルをクリックして詳細を表示</p>
-            )}
-            <div className="absolute bottom-6 inset-x-6">
-              <Mascot />
+          <div className="w-1/5 bg-white border-l border-gray-200 flex flex-col overflow-hidden">
+            {/* スクロール可能なコンテンツ領域 */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク詳細</h2>
+              {selectedTask ? (
+                <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} onTaskComplete={handleTaskComplete} />
+              ) : (
+                <p className="text-gray-500">タスクバブルをクリックして詳細を表示</p>
+              )}
+            </div>
+            {/* マスコット（常に下端に固定） */}
+            <div className="shrink-0 px-6 pb-6">
+              <Mascot mood={mood} dialogue={dialogue} visible={visible} />
             </div>
           </div>
         </div>

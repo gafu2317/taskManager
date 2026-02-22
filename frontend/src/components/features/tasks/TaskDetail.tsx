@@ -19,7 +19,7 @@ const TaskDetail = ({selectedTask, onTaskDelete, onTaskEdit, onTaskComplete}: Ta
       
       <div>
         <h3 className="font-medium text-gray-600 text-sm mb-1">説明</h3>
-        <p className="text-gray-800 text-sm">{selectedTask.description || "説明なし"}</p>
+        <p className="text-gray-800 text-sm break-all">{selectedTask.description || "説明なし"}</p>
       </div>
       
       <div className="grid grid-cols-2 gap-3">
@@ -54,24 +54,24 @@ const TaskDetail = ({selectedTask, onTaskDelete, onTaskEdit, onTaskComplete}: Ta
       </div>
       
       {/* 操作ボタン */}
-      <div className="mt-6 pt-4 border-t border-gray-200 space-y-2">
+      <div className="mt-6 pt-4 border-t border-gray-200 flex gap-2">
         <button
           onClick={() => onTaskComplete(selectedTask.id)}
-          className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+          className="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-2 rounded-md transition-colors text-xs"
         >
-          タスクを完了
+          完了
         </button>
         <button
           onClick={() => onTaskEdit(selectedTask)}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 rounded-md transition-colors text-xs"
         >
-          タスクを編集
+          編集
         </button>
         <button
           onClick={() => onTaskDelete(selectedTask.id)}
-          className="w-full bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 px-4 rounded-md transition-colors"
+          className="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-medium py-2 rounded-md transition-colors text-xs"
         >
-          タスクを削除
+          削除
         </button>
       </div>
     </div>
