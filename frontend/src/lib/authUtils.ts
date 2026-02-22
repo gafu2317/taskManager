@@ -1,6 +1,9 @@
 import { loadTasksFromLocal, saveTasksToLocal } from './localStorage';
-import { createTask as createDynamoTask } from './api.dynamodb';
+import { createTask as createDynamoTask, createSession as createDynamoSession } from './api.dynamodb';
 import { Task } from '../types/task';
+import { WorkSession } from '../types/session';
+
+const SESSIONS_KEY = 'guest_sessions';
 
 // LocalStorageからDynamoDBにデータ移行
 export const migrateGuestDataToCloud = async (userId: string): Promise<void> => {
@@ -49,4 +52,32 @@ export const getUserTasks = (userId: string): Task[] => {
 export const getGuestTasks = (): Task[] => {
   const allTasks = loadTasksFromLocal();
   return allTasks.filter(task => !task.userId);
+};
+
+// ゲストセッションをDynamoDBに移行
+export const migrateGuestSessionsToCloud = async (): Promise<void> => {
+  const raw = localStorage.getItem(SESSIONS_KEY);
+  if (!raw) return;
+
+  let guestSessions: WorkSession[] = [];
+  try {
+    guestSessions = JSON.parse(raw);
+  } catch {
+    return;
+  }
+
+  if (guestSessions.length === 0) return;
+
+  console.log(`${guestSessions.length}個のゲストセッションをDynamoDBに移行開始...`);
+
+  try {
+    for (const session of guestSessions) {
+      const { sessionId: _id, ...sessionData } = session;
+      await createDynamoSession(sessionData);
+    }
+    localStorage.removeItem(SESSIONS_KEY);
+    console.log(`✅ ${guestSessions.length}個のセッションを移行完了`);
+  } catch (error) {
+    console.error('❌ セッション移行エラー:', error);
+  }
 };

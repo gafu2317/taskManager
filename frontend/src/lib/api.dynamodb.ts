@@ -1,4 +1,5 @@
 import { Task } from '../types/task';
+import { WorkSession } from '../types/session';
 import { getSession } from 'next-auth/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
@@ -130,10 +131,50 @@ export async function getTags(): Promise<string[]> {
     if (!response.ok) {
       throw new Error('Failed to fetch tags');
     }
-    const tags: string[] = await response.json();
-    return tags;
+    const data: { tags: Array<{ name: string; count: number }>; count: number } = await response.json();
+    return (data.tags ?? []).map(tag => tag.name);
   } catch (error) {
     console.error('Error fetching tags:', error);
+    throw error;
+  }
+}
+
+// セッションAPI
+export async function createSession(session: Omit<WorkSession, 'sessionId'>): Promise<WorkSession> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/sessions`, {
+      method: 'POST',
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(session),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create session');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating session:', error);
+    throw error;
+  }
+}
+
+export async function getSessions(dateFrom?: string, dateTo?: string): Promise<WorkSession[]> {
+  try {
+    let url = `${API_BASE_URL}/sessions`;
+    const params = new URLSearchParams();
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+    if (params.toString()) url += `?${params.toString()}`;
+
+    const response = await fetch(url, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch sessions');
+    }
+    const data: { sessions: WorkSession[]; count: number } = await response.json();
+    return data.sessions ?? [];
+  } catch (error) {
+    console.error('Error fetching sessions:', error);
     throw error;
   }
 }

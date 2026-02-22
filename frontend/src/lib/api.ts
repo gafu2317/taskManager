@@ -7,6 +7,7 @@ import * as localApi from './localApi';
 import * as dynamoApi from './api.dynamodb';
 
 import { Task } from '../types/task';
+import { WorkSession } from '../types/session';
 
 interface GetTasksOptions {
   completed?: boolean;
@@ -55,4 +56,14 @@ export async function deleteTask(id: string): Promise<void> {
 export async function getTags(): Promise<string[]> {
   const api = await getApiProvider();
   return api.getTags();
+}
+
+export async function createSession(session: Omit<WorkSession, 'sessionId'>): Promise<WorkSession> {
+  const api = await getApiProvider();
+  return api.createSession(session);
+}
+
+export async function getSessions(dateFrom?: string, dateTo?: string): Promise<WorkSession[]> {
+  const api = await getApiProvider();
+  return api.getSessions(dateFrom, dateTo);
 }

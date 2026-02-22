@@ -1,6 +1,9 @@
 import { Task } from '../types/task';
 import { Tag } from '../types/tag';
+import { WorkSession } from '../types/session';
 import { saveTasksToLocal, loadTasksFromLocal, saveTagsToLocal, loadTagsFromLocal } from './localStorage';
+
+const SESSIONS_KEY = 'guest_sessions';
 
 // UUIDの簡易生成
 const generateId = (): string => {
@@ -115,6 +118,44 @@ export const getTagsLocal = async (): Promise<Tag[]> => {
 export const getTags = async (): Promise<string[]> => {
   const tags = loadTagsFromLocal();
   return tags.map(tag => tag.name);
+};
+
+// セッション関連API（LocalStorage版）
+const loadSessionsFromLocal = (): WorkSession[] => {
+  try {
+    const data = localStorage.getItem(SESSIONS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveSessionsToLocal = (sessions: WorkSession[]): void => {
+  try {
+    localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+  } catch (error) {
+    console.error('Failed to save sessions to localStorage:', error);
+  }
+};
+
+export const createSession = async (session: Omit<WorkSession, 'sessionId'>): Promise<WorkSession> => {
+  const sessions = loadSessionsFromLocal();
+  const newSession: WorkSession = {
+    ...session,
+    sessionId: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+  };
+  sessions.push(newSession);
+  saveSessionsToLocal(sessions);
+  return newSession;
+};
+
+export const getSessions = async (dateFrom?: string, dateTo?: string): Promise<WorkSession[]> => {
+  const sessions = loadSessionsFromLocal();
+  return sessions.filter(s => {
+    if (dateFrom && s.date < dateFrom) return false;
+    if (dateTo && s.date > dateTo) return false;
+    return true;
+  });
 };
 
 // タグの更新処理（内部関数）

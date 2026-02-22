@@ -6,25 +6,32 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"my-webapp-backend/models"
 )
 
 type TaskRepository struct {
-	db				*dynamodb.Client
-	TableName	string
+	db        *dynamodb.Client
+	TableName string
 }
 
-func NewTaskRepository(db *dynamodb.Client) *TaskRepository {
+func NewTaskRepository(db *dynamodb.Client, tableName string) *TaskRepository {
 	return &TaskRepository{
-		db: db,
-		TableName: "Tasks",
+		db:        db,
+		TableName: tableName,
 	}
 }
 
-//CreateTask - タスクをDynamoDBに保存
-func (r *TaskRepository) CreateTask(ctx context.Context, task *models.Task) error {
+func taskPK(userID string) string { return "USER#" + userID }
+func taskSK(taskID string) string  { return "TASK#" + taskID }
+
+// CreateTask - タスクをDynamoDBに保存
+func (r *TaskRepository) CreateTask(ctx context.Context, userID string, task *models.Task) error {
+	task.PK = taskPK(userID)
+	task.SK = taskSK(task.ID)
+
 	item, err := attributevalue.MarshalMap(task)
 	if err != nil {
 		return fmt.Errorf("failed to marshal task: %w", err)
@@ -41,36 +48,45 @@ func (r *TaskRepository) CreateTask(ctx context.Context, task *models.Task) erro
 	return nil
 }
 
-// GetTasks - 全タスクを DynamoDBから取得
-func (r *TaskRepository) GetTasks(ctx context.Context) ([]models.Task, error) {
-	// DynamoDB全件スキャン
-	result, err := r.db.Scan(ctx, &dynamodb.ScanInput{
-		TableName: aws.String(r.TableName),
-	})
+// GetTasks - ユーザーのタスク一覧をQueryで取得
+func (r *TaskRepository) GetTasks(ctx context.Context, userID string) ([]models.Task, error) {
+	keyCond := expression.Key("pk").Equal(expression.Value(taskPK(userID))).
+		And(expression.Key("sk").BeginsWith("TASK#"))
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
 	if err != nil {
-		return nil, fmt.Errorf("failed to scan items: %w", err)
+		return nil, fmt.Errorf("failed to build expression: %w", err)
 	}
 
-	//DynamoDBアイテムを構造体に変換
+	result, err := r.db.Query(ctx, &dynamodb.QueryInput{
+		TableName:                 aws.String(r.TableName),
+		KeyConditionExpression:    expr.KeyCondition(),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to query items: %w", err)
+	}
+
 	var tasks []models.Task
 	for _, item := range result.Items {
 		var task models.Task
-		err := attributevalue.UnmarshalMap(item, &task)
-		if err != nil {
+		if err := attributevalue.UnmarshalMap(item, &task); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 		}
 		tasks = append(tasks, task)
 	}
-	
+
 	return tasks, nil
 }
 
-// GetTask - 特定のタスクをIDで取得
-func (r *TaskRepository) GetTask(ctx context.Context, id string) (*models.Task, error) {
+// GetTask - 特定タスクをGetItemで取得
+func (r *TaskRepository) GetTask(ctx context.Context, userID string, taskID string) (*models.Task, error) {
 	result, err := r.db.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: aws.String(r.TableName),
 		Key: map[string]types.AttributeValue{
-			"id": &types.AttributeValueMemberS{Value: id},
+			"pk": &types.AttributeValueMemberS{Value: taskPK(userID)},
+			"sk": &types.AttributeValueMemberS{Value: taskSK(taskID)},
 		},
 	})
 	if err != nil {
@@ -78,12 +94,11 @@ func (r *TaskRepository) GetTask(ctx context.Context, id string) (*models.Task, 
 	}
 
 	if result.Item == nil {
-		return nil, nil // タスクが見つからない場合
+		return nil, nil
 	}
 
 	var task models.Task
-	err = attributevalue.UnmarshalMap(result.Item, &task)
-	if err != nil {
+	if err := attributevalue.UnmarshalMap(result.Item, &task); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal item: %w", err)
 	}
 
@@ -91,7 +106,10 @@ func (r *TaskRepository) GetTask(ctx context.Context, id string) (*models.Task, 
 }
 
 // UpdateTask - タスクを更新
-func (r *TaskRepository) UpdateTask(ctx context.Context, id string, task *models.Task) error {
+func (r *TaskRepository) UpdateTask(ctx context.Context, userID string, taskID string, task *models.Task) error {
+	task.PK = taskPK(userID)
+	task.SK = taskSK(taskID)
+
 	item, err := attributevalue.MarshalMap(task)
 	if err != nil {
 		return fmt.Errorf("failed to marshal task: %w", err)
@@ -109,11 +127,12 @@ func (r *TaskRepository) UpdateTask(ctx context.Context, id string, task *models
 }
 
 // DeleteTask - タスクを削除
-func (r *TaskRepository) DeleteTask(ctx context.Context, id string) error {
+func (r *TaskRepository) DeleteTask(ctx context.Context, userID string, taskID string) error {
 	_, err := r.db.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(r.TableName),
 		Key: map[string]types.AttributeValue{
-			"id": &types.AttributeValueMemberS{Value: id},
+			"pk": &types.AttributeValueMemberS{Value: taskPK(userID)},
+			"sk": &types.AttributeValueMemberS{Value: taskSK(taskID)},
 		},
 	})
 	if err != nil {

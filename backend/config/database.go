@@ -22,10 +22,10 @@ func NewDynamoDBClient() (*DynamoDBClient, error) {
 		region = "ap-northeast-1"
 	}
 
-	// 環境変数からテーブル名を取得（デフォルトはTasks）
+	// 環境変数からテーブル名を取得（デフォルトはTaskManager）
 	tableName := os.Getenv("DYNAMODB_TABLE_NAME")
 	if tableName == "" {
-		tableName = "Tasks"
+		tableName = "TaskManager"
 	}
 
 	var cfg aws.Config

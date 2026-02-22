@@ -11,28 +11,23 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
-// DynamoDB ハンドラー用
 func createTask(taskRepo *repository.TaskRepository, tagRepo *repository.TagRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var newTask models.Task
-
-		// ユーザーIDをヘッダーから取得
 		userID := c.GetHeader("X-User-ID")
 		if userID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
 			return
 		}
 
-		//JSONリクエストを構造体にバインド
+		var newTask models.Task
 		if err := c.ShouldBindJSON(&newTask); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		//バリデーション
 		if newTask.Title == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Title is required"})
 			return
@@ -46,65 +41,49 @@ func createTask(taskRepo *repository.TaskRepository, tagRepo *repository.TagRepo
 			return
 		}
 
-		// タグ処理（DynamoDB版）
+		// タグ処理
 		for _, tagName := range newTask.Tags {
-			existingTag, err := tagRepo.GetTagByName(context.TODO(), tagName)
+			existingTag, err := tagRepo.GetTagByName(context.TODO(), userID, tagName)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check tag"})
 				return
 			}
-			
+
 			if existingTag != nil {
-				// 既存タグの更新
 				existingTag.Count++
 				existingTag.LastUsed = time.Now()
-				err = tagRepo.UpsertTag(context.TODO(), existingTag)
+				err = tagRepo.UpsertTag(context.TODO(), userID, existingTag)
 			} else {
-				// 新規タグの作成
 				newTag := &models.Tag{
-					ID:       tagName, // IDとして名前を使用
 					Name:     tagName,
 					Count:    1,
 					LastUsed: time.Now(),
 				}
-				err = tagRepo.UpsertTag(context.TODO(), newTag)
+				err = tagRepo.UpsertTag(context.TODO(), userID, newTag)
 			}
-			
+
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update tag"})
 				return
 			}
 		}
 
-		//IDとタイムスタンプ、ユーザーIDを設定
 		newTask.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 		newTask.UserID = userID
 		newTask.CreatedAt = time.Now()
 		newTask.UpdatedAt = time.Now()
 
-		// DynamoDBに保存
-		err := taskRepo.CreateTask(context.TODO(), &newTask)
-		if err != nil {
+		if err := taskRepo.CreateTask(context.TODO(), userID, &newTask); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task"})
 			return
 		}
 
-		//作成したタスクを返す
 		c.JSON(http.StatusCreated, newTask)
 	}
 }
 
-// DynamoDB版は一時的にコメントアウト
-/*
-func createTaskWithDB(repo *repository.TaskRepository) gin.HandlerFunc {
-	// DynamoDB実装はここに保存済み
-	// 後で復活させる
-}
-*/
-
 func getTasks(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// ユーザーIDをヘッダーから取得
 		userID := c.GetHeader("X-User-ID")
 		if userID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
@@ -112,41 +91,29 @@ func getTasks(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 		}
 
 		completed := c.Query("completed")
-		
-		// DynamoDBから全タスクを取得
-		allTasks, err := taskRepo.GetTasks(context.TODO())
+
+		allTasks, err := taskRepo.GetTasks(context.TODO(), userID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get tasks"})
 			return
 		}
-		
-		filteredTasks := make([]models.Task, 0)
-		
-		// ユーザーIDとクエリパラメータに応じてフィルタリング
-		for _, task := range allTasks {
-			// まずユーザーIDでフィルタリング
-			if task.UserID != userID {
-				continue
-			}
 
-			shouldInclude := false
-			
-			if completed == "" {
-				// パラメータなし = 全て返す
-				shouldInclude = true
-			} else if completed == "true" {
-				// completed=true = 完了済みのみ
-				shouldInclude = task.Completed
-			} else if completed == "false" {
-				// completed=false = 未完了のみ
-				shouldInclude = !task.Completed
-			}
-			
-			if shouldInclude {
+		filteredTasks := make([]models.Task, 0)
+		for _, task := range allTasks {
+			switch completed {
+			case "":
 				filteredTasks = append(filteredTasks, task)
+			case "true":
+				if task.Completed {
+					filteredTasks = append(filteredTasks, task)
+				}
+			case "false":
+				if !task.Completed {
+					filteredTasks = append(filteredTasks, task)
+				}
 			}
 		}
-		
+
 		c.JSON(http.StatusOK, gin.H{
 			"tasks": filteredTasks,
 			"count": len(filteredTasks),
@@ -154,41 +121,26 @@ func getTasks(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	}
 }
 
-// DynamoDB版は一時的にコメントアウト
-/*
-func getTasksWithDB(repo *repository.TaskRepository) gin.HandlerFunc {
+func getTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//DynamoDBからタスクを取得
-		tasks, err := repo.GetTasks(context.TODO())
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get tasks"})
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"tasks": tasks,
-			"count": len(tasks),
-		})
-	}
-}
-*/
-
-func getTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
-	return func(c *gin.Context) {
 		id := c.Param("id")
-
-		// DynamoDBからタスクを取得
-		task, err := taskRepo.GetTask(context.TODO(), id)
+		task, err := taskRepo.GetTask(context.TODO(), userID, id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get task"})
 			return
 		}
-		
+
 		if task == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 			return
 		}
-		
+
 		c.JSON(http.StatusOK, task)
 	}
 }
@@ -206,7 +158,6 @@ type updateTaskRequest struct {
 
 func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// ユーザーIDをヘッダーから取得
 		userID := c.GetHeader("X-User-ID")
 		if userID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
@@ -215,32 +166,22 @@ func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 
 		id := c.Param("id")
 
-		//更新データを受け取る構造体
 		var updatedData updateTaskRequest
 		if err := c.ShouldBindJSON(&updatedData); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		// 既存タスクを取得
-		existingTask, err := taskRepo.GetTask(context.TODO(), id)
+		existingTask, err := taskRepo.GetTask(context.TODO(), userID, id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get task"})
 			return
 		}
-
 		if existingTask == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 			return
 		}
 
-		// 所有者チェック
-		if existingTask.UserID != userID {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
-			return
-		}
-
-		//フィールドを更新
 		if updatedData.Title != "" {
 			existingTask.Title = updatedData.Title
 		}
@@ -267,9 +208,7 @@ func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 		}
 		existingTask.UpdatedAt = time.Now()
 
-		// DynamoDBに保存
-		err = taskRepo.UpdateTask(context.TODO(), id, existingTask)
-		if err != nil {
+		if err := taskRepo.UpdateTask(context.TODO(), userID, id, existingTask); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update task"})
 			return
 		}
@@ -280,7 +219,6 @@ func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 
 func deleteTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// ユーザーIDをヘッダーから取得
 		userID := c.GetHeader("X-User-ID")
 		if userID == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
@@ -289,32 +227,105 @@ func deleteTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 
 		id := c.Param("id")
 
-		// まずタスクが存在するか確認
-		existingTask, err := taskRepo.GetTask(context.TODO(), id)
+		existingTask, err := taskRepo.GetTask(context.TODO(), userID, id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get task"})
 			return
 		}
-		
 		if existingTask == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 			return
 		}
 
-		// 所有者チェック
-		if existingTask.UserID != userID {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied"})
-			return
-		}
-
-		// DynamoDBから削除
-		err = taskRepo.DeleteTask(context.TODO(), id)
-		if err != nil {
+		if err := taskRepo.DeleteTask(context.TODO(), userID, id); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete task"})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{"message": "Task deleted", "id": id})
+	}
+}
+
+func getTags(tagRepo *repository.TagRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		tags, err := tagRepo.GetTagsByUser(context.TODO(), userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get tags"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"tags":  tags,
+			"count": len(tags),
+		})
+	}
+}
+
+func createSession(sessionRepo *repository.SessionRepository, taskRepo *repository.TaskRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		var session models.WorkSession
+		if err := c.ShouldBindJSON(&session); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if session.TaskID == "" || session.Date == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "task_id and date are required"})
+			return
+		}
+
+		session.SessionID = fmt.Sprintf("%d", time.Now().UnixNano())
+
+		if err := sessionRepo.CreateSession(context.TODO(), userID, &session); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create session"})
+			return
+		}
+
+		// タスクの累積作業時間を更新
+		existingTask, err := taskRepo.GetTask(context.TODO(), userID, session.TaskID)
+		if err == nil && existingTask != nil {
+			existingTask.TotalWorkTime += session.WorkTime
+			existingTask.TotalBreakTime += session.BreakTime
+			existingTask.UpdatedAt = time.Now()
+			_ = taskRepo.UpdateTask(context.TODO(), userID, session.TaskID, existingTask)
+		}
+
+		c.JSON(http.StatusCreated, session)
+	}
+}
+
+func getSessions(sessionRepo *repository.SessionRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		dateFrom := c.Query("date_from")
+		dateTo := c.Query("date_to")
+
+		sessions, err := sessionRepo.GetSessions(context.TODO(), userID, dateFrom, dateTo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get sessions"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"sessions": sessions,
+			"count":    len(sessions),
+		})
 	}
 }
 
@@ -325,35 +336,19 @@ func healthCheck(c *gin.Context) {
 	})
 }
 
-func getTags(tagRepo *repository.TagRepository) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// DynamoDBから全タグを取得
-		allTags, err := tagRepo.GetAllTags(context.TODO())
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get tags"})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"tags": allTags,
-			"count": len(allTags),
-		})
-	}
-}
-
 func main() {
-	// DynamoDB接続
 	dbClient, err := config.NewDynamoDBClient()
 	if err != nil {
 		log.Fatalf("Failed to create DynamoDB client: %v", err)
 	}
-	
-	taskRepo := repository.NewTaskRepository(dbClient.Client)
-	tagRepo := repository.NewTagRepository(dbClient.Client)
+
+	tableName := dbClient.TableName
+	taskRepo := repository.NewTaskRepository(dbClient.Client, tableName)
+	tagRepo := repository.NewTagRepository(dbClient.Client, tableName)
+	sessionRepo := repository.NewSessionRepository(dbClient.Client, tableName)
 
 	r := gin.Default()
 
-	// CORS設定（本番環境とローカル両対応）
 	allowedOrigins := []string{"http://localhost:3000"}
 	if prodOrigin := os.Getenv("FRONTEND_URL"); prodOrigin != "" {
 		allowedOrigins = append(allowedOrigins, prodOrigin)
@@ -365,7 +360,7 @@ func main() {
 		AllowHeaders:     []string{"Content-Type", "X-User-ID"},
 		AllowCredentials: true,
 	}))
-	
+
 	r.GET("/health", healthCheck)
 	r.POST("/tasks", createTask(taskRepo, tagRepo))
 	r.GET("/tasks", getTasks(taskRepo))
@@ -373,12 +368,14 @@ func main() {
 	r.PUT("/task/:id", updateTask(taskRepo))
 	r.DELETE("/task/:id", deleteTask(taskRepo))
 	r.GET("/tags", getTags(tagRepo))
-	
+	r.POST("/sessions", createSession(sessionRepo, taskRepo))
+	r.GET("/sessions", getSessions(sessionRepo))
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
-	
+
 	fmt.Printf("Server starting on port %s\n", port)
 	log.Fatal(r.Run(":" + port))
 }

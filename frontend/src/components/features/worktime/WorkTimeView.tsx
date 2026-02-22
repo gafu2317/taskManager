@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Task } from '@/types/task';
-import { updateTask } from '@/lib/api';
+import { createSession } from '@/lib/api';
 
 type TimerState = 'idle' | 'working' | 'on_break';
 
@@ -17,6 +17,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   const [workSeconds, setWorkSeconds] = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
   const [segmentStart, setSegmentStart] = useState<number | null>(null);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [currentSegmentSeconds, setCurrentSegmentSeconds] = useState(0);
 
   const selectedTask = tasks.find(t => t.id === selectedTaskId);
@@ -36,12 +37,13 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
 
   const handleStart = () => {
     if (!selectedTaskId) return;
-    setSegmentStart(Date.now());
+    const now = Date.now();
+    setSegmentStart(now);
+    setSessionStartTime(new Date(now));
     setTimerState('working');
     setWorkSeconds(0);
     setBreakSeconds(0);
     setCurrentSegmentSeconds(0);
-
   };
 
   const handleBreak = () => {
@@ -61,16 +63,23 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   };
 
   const handleEnd = async () => {
+    const endTime = new Date();
     const elapsed = segmentStart ? Math.floor((Date.now() - segmentStart) / 1000) : 0;
     let finalWork = workSeconds;
     let finalBreak = breakSeconds;
     if (timerState === 'working') finalWork += elapsed;
     if (timerState === 'on_break') finalBreak += elapsed;
 
-    if (selectedTaskId && selectedTask) {
-      await updateTask(selectedTaskId, {
-        totalWorkTime: (selectedTask.totalWorkTime ?? 0) + finalWork,
-        totalBreakTime: (selectedTask.totalBreakTime ?? 0) + finalBreak,
+    if (selectedTaskId && selectedTask && sessionStartTime) {
+      const date = sessionStartTime.toISOString().slice(0, 10);
+      await createSession({
+        taskId: selectedTaskId,
+        taskTitle: selectedTask.title,
+        date,
+        workTime: finalWork,
+        breakTime: finalBreak,
+        startedAt: sessionStartTime.toISOString(),
+        endedAt: endTime.toISOString(),
       });
       onTaskUpdated();
     }
@@ -79,6 +88,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
     setWorkSeconds(0);
     setBreakSeconds(0);
     setSegmentStart(null);
+    setSessionStartTime(null);
     setCurrentSegmentSeconds(0);
   };
 
