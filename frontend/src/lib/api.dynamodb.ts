@@ -139,18 +139,41 @@ export async function getTags(): Promise<string[]> {
   }
 }
 
+// バックエンドのsnake_caseレスポンスをcamelCaseに変換
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toWorkSession(s: any): WorkSession {
+  return {
+    sessionId: s.session_id ?? s.sessionId ?? '',
+    taskId: s.task_id ?? s.taskId ?? '',
+    taskTitle: s.task_title ?? s.taskTitle ?? '',
+    date: s.date ?? '',
+    workTime: s.work_time ?? s.workTime ?? 0,
+    breakTime: s.break_time ?? s.breakTime ?? 0,
+    startedAt: s.started_at ?? s.startedAt ?? '',
+    endedAt: s.ended_at ?? s.endedAt ?? '',
+  };
+}
+
 // セッションAPI
 export async function createSession(session: Omit<WorkSession, 'sessionId'>): Promise<WorkSession> {
   try {
     const response = await fetch(`${API_BASE_URL}/sessions`, {
       method: 'POST',
       headers: await getAuthHeaders(),
-      body: JSON.stringify(session),
+      body: JSON.stringify({
+        task_id: session.taskId,
+        task_title: session.taskTitle,
+        date: session.date,
+        work_time: session.workTime,
+        break_time: session.breakTime,
+        started_at: session.startedAt,
+        ended_at: session.endedAt,
+      }),
     });
     if (!response.ok) {
       throw new Error('Failed to create session');
     }
-    return await response.json();
+    return toWorkSession(await response.json());
   } catch (error) {
     console.error('Error creating session:', error);
     throw error;
@@ -171,8 +194,8 @@ export async function getSessions(dateFrom?: string, dateTo?: string): Promise<W
     if (!response.ok) {
       throw new Error('Failed to fetch sessions');
     }
-    const data: { sessions: WorkSession[]; count: number } = await response.json();
-    return data.sessions ?? [];
+    const data: { sessions: unknown[]; count: number } = await response.json();
+    return (data.sessions ?? []).map(toWorkSession);
   } catch (error) {
     console.error('Error fetching sessions:', error);
     throw error;
