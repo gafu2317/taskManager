@@ -24,6 +24,24 @@ type CurrentSource =
   | { kind: 'url'; videoId: string }
   | null;
 
+const VISUALIZER_BARS = [
+  { duration: 0.8, delay: 0.00, idleHeight: 15 },
+  { duration: 0.6, delay: 0.15, idleHeight: 25 },
+  { duration: 1.0, delay: 0.05, idleHeight: 18 },
+  { duration: 0.7, delay: 0.30, idleHeight: 30 },
+  { duration: 0.9, delay: 0.10, idleHeight: 12 },
+  { duration: 0.6, delay: 0.40, idleHeight: 22 },
+  { duration: 1.1, delay: 0.20, idleHeight: 20 },
+  { duration: 0.8, delay: 0.35, idleHeight: 28 },
+  { duration: 0.7, delay: 0.08, idleHeight: 16 },
+  { duration: 0.9, delay: 0.25, idleHeight: 24 },
+  { duration: 0.6, delay: 0.45, idleHeight: 19 },
+  { duration: 1.0, delay: 0.12, idleHeight: 26 },
+  { duration: 0.8, delay: 0.38, idleHeight: 14 },
+  { duration: 0.7, delay: 0.22, idleHeight: 21 },
+  { duration: 0.9, delay: 0.50, idleHeight: 17 },
+];
+
 function extractVideoId(input: string): string | null {
   const patterns = [
     /[?&]v=([^&]+)/,
@@ -193,6 +211,13 @@ export default function BGMPlayer() {
   const canSave = currentSource !== null && isLoggedIn;
 
   return (
+    <>
+    <style>{`
+      @keyframes viz-bar {
+        from { height: 12%; }
+        to   { height: 100%; }
+      }
+    `}</style>
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 w-full flex-1 flex flex-col">
 
       <p className="text-sm font-medium text-gray-500 mb-4">🎵 BGM</p>
@@ -319,7 +344,28 @@ export default function BGMPlayer() {
         )}
       </div>
 
+      {/* ビジュアライザー */}
+      <div className="flex items-end gap-[3px] h-24 mt-auto -mx-2">
+        {VISUALIZER_BARS.map((bar, i) => (
+          <div
+            key={i}
+            className="rounded-sm flex-1"
+            style={{
+              height: `${bar.idleHeight}%`,
+              background: isPlaying
+                ? 'linear-gradient(to top, #3b82f6, #a78bfa)'
+                : 'linear-gradient(to top, #e5e7eb, #f3f4f6)',
+              transition: 'background 0.5s',
+              animation: isPlaying
+                ? `viz-bar ${bar.duration}s ease-in-out ${bar.delay}s infinite alternate both`
+                : undefined,
+            }}
+          />
+        ))}
+      </div>
+
       <div ref={playerContainerRef} className="absolute pointer-events-none opacity-0 w-px h-px overflow-hidden" />
     </div>
+    </>
   );
 }
