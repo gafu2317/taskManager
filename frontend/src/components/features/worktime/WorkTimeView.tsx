@@ -7,6 +7,7 @@ import { createSession, getSessions } from '@/lib/api';
 import Mascot from '@/components/features/mascot/Mascot';
 import { useMascot } from '@/hooks/useMascot';
 import { MascotMood } from '@/types/mascot';
+import BGMPlayer from './BGMPlayer';
 
 type TimerState = 'idle' | 'working' | 'on_break';
 
@@ -181,8 +182,10 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   return (
     <div className="flex flex-1 items-start pt-10 p-8 bg-gray-50">
 
-      {/* 左スペーサー（将来のコンテンツ用） */}
-      <div className="flex-1" />
+      {/* BGMプレイヤー */}
+      <div className="flex-1 flex pr-8">
+        <BGMPlayer />
+      </div>
 
       {/* タイマー */}
       <div className="w-[32rem] shrink-0 flex flex-col gap-6">

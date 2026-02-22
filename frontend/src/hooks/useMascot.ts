@@ -3,9 +3,16 @@ import { MascotMood } from '../types/mascot';
 import { getDialogue } from '../lib/mascotDialogue';
 
 export function useMascot(mood: MascotMood) {
-  const [dialogue, setDialogue] = useState<string>(() => getDialogue(mood));
-  const [visible, setVisible] = useState(true);
+  const [dialogue, setDialogue] = useState<string>('');
+  const [visible, setVisible] = useState(false);
   const prevMoodRef = useRef(mood);
+
+  // 初回マウント後にセリフをセット（SSR hydration mismatch 回避）
+  useEffect(() => {
+    setDialogue(getDialogue(mood));
+    setVisible(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ムードが変わったらセリフを更新
   useEffect(() => {
