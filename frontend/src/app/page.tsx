@@ -11,6 +11,7 @@ import TaskDetail from "@/components/features/tasks/TaskDetail";
 import TaskEditModal from "@/components/features/tasks/TaskEditModal";
 import TaskFilterPanel from "@/components/features/tasks/TaskFilterPanel";
 import RegisterPrompt from "@/components/features/auth/RegisterPrompt";
+import WorkTimeView from "@/components/features/worktime/WorkTimeView";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 
 export default function Home() {
@@ -23,6 +24,7 @@ export default function Home() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRegisterPromptDismissed, setIsRegisterPromptDismissed] = useState(false);
   const [showRegisterPopup, setShowRegisterPopup] = useState(false);
+  const [activeTab, setActiveTab] = useState<'tasks' | 'worktime'>('tasks');
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
   // ログイン状態変化時の処理
@@ -172,69 +174,100 @@ export default function Home() {
   const selectedTask = tasks?.find(task => task.id === selectedTaskId);
 
   return (
-    <div className="flex h-screen bg-gray-50" onClick={handleContainerClick}>
-      {/* 左列 - タスク作成 (20%) */}
-      <div className="w-1/5 bg-white border-r border-gray-200 p-6">
-        <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク作成</h2>
-        <TaskForm onTaskCreated={handleTaskCreated} />
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* タブバー */}
+      <div className="flex items-center gap-1 px-4 pt-2 bg-white border-b border-gray-200 shrink-0">
+        {([
+          { key: 'tasks', label: 'タスク管理', icon: '📋' },
+          { key: 'worktime', label: '作業時間記録', icon: '⏱' },
+        ] as const).map(({ key, label, icon }) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-t-lg text-sm font-medium border border-b-0 transition-colors ${
+              activeTab === key
+                ? 'bg-blue-100 border-blue-300 text-blue-800'
+                : 'bg-white border-transparent text-gray-400 hover:text-gray-600 hover:bg-blue-50 hover:border-blue-200'
+            }`}
+          >
+            <span>{icon}</span>
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* 中央列 - タスクバブル表示 (60%) */}
-      <div className="w-3/5 bg-white p-6 flex flex-col items-center">
-        <h2 className="text-lg font-semibold mb-6 text-gray-800">タスク一覧</h2>
-        <TaskFilterPanel 
-          taskFilter={taskFilter}
-          availableTags={availableTags}
-          onFilterChange={handleFilterChange}
-        />
-        <div 
-          ref={bubbleAreaRef}
-          className="w-full h-full flex justify-center items-start"
-        >
-          <TaskBubbleView 
-            tasks={filteredTasks}
-            loading={loading}
-            containerWidth={containerSize.width}
-            containerHeight={containerSize.height}
-            onTaskSelect={handleTaskSelect}
-            onTaskComplete={handleTaskComplete}
-            selectedTaskId={selectedTaskId}
-          />
+      {/* タスク管理タブ */}
+      {activeTab === 'tasks' && (
+        <div className="flex flex-1 overflow-hidden" onClick={handleContainerClick}>
+          {/* 左列 - タスク作成 (20%) */}
+          <div className="w-1/5 bg-white border-r border-gray-200 p-6">
+            <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク作成</h2>
+            <TaskForm onTaskCreated={handleTaskCreated} />
+          </div>
+
+          {/* 中央列 - タスクバブル表示 (60%) */}
+          <div className="w-3/5 bg-white p-6 flex flex-col items-center">
+            <h2 className="text-lg font-semibold mb-6 text-gray-800">タスク一覧</h2>
+            <TaskFilterPanel
+              taskFilter={taskFilter}
+              availableTags={availableTags}
+              onFilterChange={handleFilterChange}
+            />
+            <div
+              ref={bubbleAreaRef}
+              className="w-full h-full flex justify-center items-start"
+            >
+              <TaskBubbleView
+                tasks={filteredTasks}
+                loading={loading}
+                containerWidth={containerSize.width}
+                containerHeight={containerSize.height}
+                onTaskSelect={handleTaskSelect}
+                onTaskComplete={handleTaskComplete}
+                selectedTaskId={selectedTaskId}
+              />
+            </div>
+          </div>
+
+          {/* 右列 - タスク詳細 (20%) */}
+          <div className="w-1/5 bg-white border-l border-gray-200 p-6">
+            <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク詳細</h2>
+            {selectedTask ? (
+              <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} />
+            ) : (
+              <p className="text-gray-500">タスクバブルをクリックして詳細を表示</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 右列 - タスク詳細 (20%) */}
-      <div className="w-1/5 bg-white border-l border-gray-200 p-6">
-        <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク詳細</h2>
-        {selectedTask ? (
-          <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} />
-        ) : (
-          <p className="text-gray-500">タスクバブルをクリックして詳細を表示</p>
-        )}
-      </div>
-      
+      {/* 作業時間タブ */}
+      {activeTab === 'worktime' && (
+        <WorkTimeView />
+      )}
+
       {/* タスク編集モーダル */}
       {editingTask && (
-        <TaskEditModal 
+        <TaskEditModal
           task={editingTask}
           isOpen={isEditModalOpen}
           onClose={handleEditModalClose}
           onTaskUpdated={handleTaskUpdated}
         />
       )}
-      
+
       {/* 登録促進ポップアップ */}
       {showRegisterPopup && (
-        <div 
+        <div
           className="fixed inset-0 flex items-center justify-center z-50"
           style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
           onClick={handleDismissRegisterPrompt}
         >
-          <div 
+          <div
             className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <RegisterPrompt 
+            <RegisterPrompt
               taskCount={tasks.length}
               onRegisterClick={handleRegisterClick}
               onDismiss={handleDismissRegisterPrompt}
