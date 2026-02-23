@@ -5,10 +5,7 @@ import Mascot from './Mascot';
 import { useMascotDialogue, useMascotData } from '@/hooks/useMascot';
 import { getMascot, unlockMascotSlot } from '@/lib/api';
 import {
-  PERSONALITY_PARAMS,
-  PersonalityParams,
-  calcPersonalityCost,
-  DEFAULT_PERSONALITY_PARAMS,
+  PERSONALITY_PRESETS,
   MAX_SLOTS,
   SLOT_UNLOCK_COSTS,
 } from '@/types/mascot';
@@ -21,11 +18,11 @@ export default function MascotView() {
   const [unlockedSlots, setUnlockedSlots] = useState(1);
   const [unlocking, setUnlocking] = useState(false);
 
-  const { mascotData, loading, updatePersonality } = useMascotData(activeSlot);
+  const { mascotData, loading, updatePreset } = useMascotData(activeSlot);
   const { dialogue, visible } = useMascotDialogue('idle');
 
-  const [params, setParams] = useState<PersonalityParams | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [selecting, setSelecting] = useState<string | null>(null);
+
   // スロット1から解放済みスロット数を取得
   useEffect(() => {
     getMascot(1)
@@ -33,27 +30,14 @@ export default function MascotView() {
       .catch(() => {});
   }, []);
 
-  const currentParams = params ?? mascotData.personality_params;
-  const oldCost = calcPersonalityCost(mascotData.personality_params);
-  const newCost = calcPersonalityCost(currentParams);
-  const diff = newCost - oldCost;
-  const availablePoints = mascotData.current_points - diff;
-  const canSave = availablePoints >= 0 && params !== null;
-
-  const handleParamChange = (key: keyof PersonalityParams, value: number) => {
-    setParams(prev => ({ ...(prev ?? mascotData.personality_params), [key]: value }));
-  };
-
-  const handleReset = () => setParams(DEFAULT_PERSONALITY_PARAMS);
-
-  const handleSave = async () => {
-    if (!canSave || !params) return;
-    setSaving(true);
+  const handleSelectPreset = async (presetId: string) => {
+    setSelecting(presetId);
     try {
-      await updatePersonality(params);
-      setParams(null);
+      await updatePreset(presetId);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '変更に失敗しました');
     } finally {
-      setSaving(false);
+      setSelecting(null);
     }
   };
 
@@ -70,14 +54,16 @@ export default function MascotView() {
     }
   };
 
-  // スロット切り替え時に編集中のパラメータをリセット
+  // スロット切り替え時
   const handleSlotChange = (slot: number) => {
     setActiveSlot(slot);
-    setParams(null);
   };
 
   // スロット1のポイント（解放コスト判定用）
   const slot1Points = activeSlot === 1 ? mascotData.current_points : null;
+
+  const currentPreset = mascotData.personality_preset || 'flat';
+  const unlockedPresets: string[] = mascotData.unlocked_presets ?? ['flat'];
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden bg-gray-50">
@@ -85,67 +71,79 @@ export default function MascotView() {
       {/* メインコンテンツ（3カラム） */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* 左列: 性格設定 */}
+        {/* 左列: 性格プリセット選択 */}
         <div className="w-1/3 flex flex-col overflow-y-auto border-r border-gray-200 bg-white">
           <div className="p-6">
-            <h2 className="text-base font-bold text-gray-700 mb-4">性格設定</h2>
+            <h2 className="text-base font-bold text-gray-700 mb-1">性格プリセット</h2>
+            <p className="text-xs text-gray-400 mb-4">解放済みのプリセットはいつでも無料で切り替えられます</p>
 
-            <div className="bg-gray-50 rounded-xl p-3 mb-5 text-sm flex flex-col gap-1">
-              <div className="flex justify-between">
-                <span className="text-gray-500">所持ポイント</span>
-                <span className="font-mono font-bold">{mascotData.current_points} pt</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">使用中</span>
-                <span className={`font-mono font-bold ${newCost > mascotData.current_points + oldCost ? 'text-red-500' : 'text-blue-500'}`}>
-                  {newCost} pt
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">保存後の残高</span>
-                <span className={`font-mono font-bold ${availablePoints < 0 ? 'text-red-500' : 'text-gray-800'}`}>
-                  {availablePoints} pt
-                </span>
-              </div>
-            </div>
+            <div className="flex flex-col gap-2">
+              {PERSONALITY_PRESETS.map((preset) => {
+                const isUnlocked = unlockedPresets.includes(preset.id);
+                const isActive   = currentPreset === preset.id;
+                const canAfford  = mascotData.current_points >= preset.cost;
+                const isBusy     = selecting === preset.id;
 
-            <div className="flex flex-col gap-4">
-              {PERSONALITY_PARAMS.map(({ key, name, lowLabel, highLabel }) => (
-                <div key={key}>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-sm font-medium text-gray-700">{name}</span>
-                    <span className="text-sm font-mono text-gray-500">Lv {currentParams[key]}</span>
+                return (
+                  <div
+                    key={preset.id}
+                    className={`rounded-xl border-2 p-3 transition-all ${
+                      isActive
+                        ? 'border-blue-400 bg-blue-50'
+                        : isUnlocked
+                        ? 'border-gray-200 bg-white hover:border-gray-300'
+                        : 'border-gray-100 bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-sm font-bold ${isActive ? 'text-blue-700' : isUnlocked ? 'text-gray-700' : 'text-gray-400'}`}>
+                            {preset.name}
+                          </span>
+                          {isActive && (
+                            <span className="text-[10px] font-bold bg-blue-500 text-white px-1.5 py-0.5 rounded-full">
+                              選択中
+                            </span>
+                          )}
+                          {isUnlocked && !isActive && (
+                            <span className="text-[10px] text-green-600 font-medium">解放済み</span>
+                          )}
+                        </div>
+                        <p className={`text-xs mt-0.5 ${isUnlocked ? 'text-gray-500' : 'text-gray-400'}`}>
+                          {preset.description}
+                        </p>
+                      </div>
+
+                      <div className="flex-shrink-0 flex flex-col items-end gap-1">
+                        {!isUnlocked && (
+                          <span className={`text-xs font-mono font-bold ${canAfford ? 'text-orange-500' : 'text-gray-400'}`}>
+                            {preset.cost}pt
+                          </span>
+                        )}
+                        {isActive ? null : isUnlocked ? (
+                          <button
+                            onClick={() => handleSelectPreset(preset.id)}
+                            disabled={isBusy || selecting !== null}
+                            className="text-xs px-2 py-1 rounded-lg bg-blue-100 text-blue-600 font-medium hover:bg-blue-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {isBusy ? '...' : '選択'}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleSelectPreset(preset.id)}
+                            disabled={!canAfford || isBusy || selecting !== null || loading}
+                            className="text-xs px-2 py-1 rounded-lg bg-orange-100 text-orange-600 font-medium hover:bg-orange-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                            title={canAfford ? `${preset.cost}ptで解放` : 'ポイント不足'}
+                          >
+                            {isBusy ? '...' : '解放'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <input
-                    type="range"
-                    min={0}
-                    max={10}
-                    value={currentParams[key]}
-                    onChange={e => handleParamChange(key, Number(e.target.value))}
-                    className="w-full accent-blue-500"
-                  />
-                  <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
-                    <span>{lowLabel}</span>
-                    <span>{highLabel}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex gap-3 mt-5">
-              <button
-                onClick={handleReset}
-                className="flex-1 py-2 rounded-xl border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
-              >
-                リセット
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!canSave || saving}
-                className="flex-1 py-2 rounded-xl bg-blue-500 text-white text-sm font-bold hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400"
-              >
-                {saving ? '保存中...' : '保存'}
-              </button>
+                );
+              })}
             </div>
           </div>
         </div>

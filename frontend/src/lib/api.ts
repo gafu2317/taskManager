@@ -9,7 +9,7 @@ import * as dynamoApi from './api.dynamodb';
 import { Task } from '../types/task';
 import { WorkSession } from '../types/session';
 import { BGMPreset } from '../types/bgmPreset';
-import { MascotData, PersonalityParams } from '../types/mascot';
+import { MascotData } from '../types/mascot';
 
 interface GetTasksOptions {
   completed?: boolean;
@@ -97,7 +97,8 @@ const DEFAULT_MASCOT: MascotData = {
   user_id: '',
   current_points: 0,
   total_earned_points: 0,
-  personality_params: { genki: 0, kibishisa: 0, amae: 0, tsundere: 0, majime: 0, tennen: 0 },
+  personality_preset: 'flat',
+  unlocked_presets: ['flat'],
   owned_accessories: [],
   equipped_accessories: [],
   last_login_date: '',
@@ -123,11 +124,11 @@ export async function postMascotAction(
   await dynamoApi.postMascotAction(type, workSeconds);
 }
 
-export async function postMascotPersonality(params: PersonalityParams, slot = 1): Promise<MascotData> {
+export async function postMascotPreset(presetId: string, slot = 1): Promise<MascotData> {
   const session = await getSession();
   const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
   if (!isLoggedIn) return DEFAULT_MASCOT;
-  return dynamoApi.postMascotPersonality(params, slot);
+  return dynamoApi.postMascotPreset(presetId, slot);
 }
 
 export async function postMascotShopBuy(accessoryId: string, slot = 1): Promise<MascotData> {

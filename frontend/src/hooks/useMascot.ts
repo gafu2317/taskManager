@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MascotMood, MascotData, PersonalityParams, DEFAULT_PERSONALITY_PARAMS } from '../types/mascot';
+import { MascotMood, MascotData } from '../types/mascot';
 import { getDialogue } from '../lib/mascotDialogue';
 import {
   getMascot,
   postMascotAction,
-  postMascotPersonality,
+  postMascotPreset,
   postMascotShopBuy,
   putMascotEquip,
   unlockMascotSlot,
@@ -14,14 +14,14 @@ import {
 
 // ─── セリフ制御フック（既存の useMascot を改名） ───────────────────────
 
-export function useMascotDialogue(mood: MascotMood, params?: PersonalityParams) {
+export function useMascotDialogue(mood: MascotMood) {
   const [dialogue, setDialogue] = useState<string>('');
   const [visible, setVisible] = useState(false);
   const prevMoodRef = useRef(mood);
 
   // 初回マウント後にセリフをセット（SSR hydration mismatch 回避）
   useEffect(() => {
-    setDialogue(getDialogue(mood));  // params は将来のセリフシステム拡張で使う
+    setDialogue(getDialogue(mood));
     setVisible(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -64,7 +64,8 @@ const DEFAULT_MASCOT_DATA: MascotData = {
   user_id: '',
   current_points: 0,
   total_earned_points: 0,
-  personality_params: DEFAULT_PERSONALITY_PARAMS,
+  personality_preset: 'flat',
+  unlocked_presets: ['flat'],
   owned_accessories: [],
   equipped_accessories: [],
   last_login_date: '',
@@ -100,8 +101,8 @@ export function useMascotData(slot = 1) {
     load();
   }, [slot]);
 
-  const updatePersonality = useCallback(async (params: PersonalityParams) => {
-    const updated = await postMascotPersonality(params, slot);
+  const updatePreset = useCallback(async (presetId: string) => {
+    const updated = await postMascotPreset(presetId, slot);
     setMascotData(updated);
   }, [slot]);
 
@@ -127,7 +128,7 @@ export function useMascotData(slot = 1) {
   return {
     mascotData,
     loading,
-    updatePersonality,
+    updatePreset,
     buyAccessory,
     updateEquip,
     addPoints,

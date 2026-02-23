@@ -1,7 +1,7 @@
 import { Task } from '../types/task';
 import { WorkSession } from '../types/session';
 import { BGMPreset } from '../types/bgmPreset';
-import { MascotData, PersonalityParams } from '../types/mascot';
+import { MascotData } from '../types/mascot';
 import { getSession } from 'next-auth/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
@@ -270,14 +270,17 @@ export async function postMascotAction(
   return response.json();
 }
 
-// 性格パラメータ変更
-export async function postMascotPersonality(params: PersonalityParams, slot = 1): Promise<MascotData> {
-  const response = await fetch(`${API_BASE_URL}/mascot/personality?slot=${slot}`, {
+// 性格プリセット変更
+export async function postMascotPreset(presetId: string, slot = 1): Promise<MascotData> {
+  const response = await fetch(`${API_BASE_URL}/mascot/preset?slot=${slot}`, {
     method: 'POST',
     headers: await getAuthHeaders(),
-    body: JSON.stringify({ params }),
+    body: JSON.stringify({ preset_id: presetId }),
   });
-  if (!response.ok) throw new Error('Failed to update personality');
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error ?? 'Failed to update preset');
+  }
   return response.json();
 }
 

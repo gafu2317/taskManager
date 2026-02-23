@@ -414,13 +414,25 @@ var slotUnlockCosts = map[int]int{
 
 const maxSlots = 3
 
+// 有効なプリセットIDとコストのマップ
+var presetCosts = map[string]int{
+	"flat":      0,
+	"genki":     100,
+	"amaenbou":  150,
+	"tennen":    150,
+	"tsundere":  200,
+	"majime":    200,
+	"nekketsu":  300,
+	"cool":      300,
+}
+
 type mascotActionRequest struct {
 	Type        string `json:"type"`
 	WorkSeconds int    `json:"work_seconds"`
 }
 
-type personalityRequest struct {
-	Params models.PersonalityParams `json:"params"`
+type presetRequest struct {
+	PresetID string `json:"preset_id"`
 }
 
 type shopBuyRequest struct {
@@ -514,7 +526,7 @@ func postMascotAction(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
 	}
 }
 
-func postMascotPersonality(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
+func postMascotPreset(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID := c.GetHeader("X-User-ID")
 		if userID == "" {
@@ -522,20 +534,15 @@ func postMascotPersonality(mascotRepo *repository.MascotRepository) gin.HandlerF
 			return
 		}
 
-		var req personalityRequest
+		var req presetRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		p := req.Params
-		if p.Genki < 0 || p.Genki > 10 ||
-			p.Kibishisa < 0 || p.Kibishisa > 10 ||
-			p.Amae < 0 || p.Amae > 10 ||
-			p.Tsundere < 0 || p.Tsundere > 10 ||
-			p.Majime < 0 || p.Majime > 10 ||
-			p.Tennen < 0 || p.Tennen > 10 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "each parameter must be between 0 and 10"})
+		cost, valid := presetCosts[req.PresetID]
+		if !valid {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid preset_id"})
 			return
 		}
 
@@ -546,18 +553,26 @@ func postMascotPersonality(mascotRepo *repository.MascotRepository) gin.HandlerF
 			return
 		}
 
-		old := mascot.PersonalityParams
-		oldCost := (old.Genki + old.Kibishisa + old.Amae + old.Tsundere + old.Majime + old.Tennen) * 10
-		newCost := (p.Genki + p.Kibishisa + p.Amae + p.Tsundere + p.Majime + p.Tennen) * 10
-		diff := newCost - oldCost
-
-		if mascot.CurrentPoints-diff < 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "not enough points"})
-			return
+		// 既に解放済みか確認
+		alreadyUnlocked := false
+		for _, p := range mascot.UnlockedPresets {
+			if p == req.PresetID {
+				alreadyUnlocked = true
+				break
+			}
 		}
 
-		mascot.PersonalityParams = p
-		mascot.CurrentPoints -= diff
+		if !alreadyUnlocked {
+			// 未解放: ポイント消費して解放
+			if mascot.CurrentPoints < cost {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "not enough points"})
+				return
+			}
+			mascot.CurrentPoints -= cost
+			mascot.UnlockedPresets = append(mascot.UnlockedPresets, req.PresetID)
+		}
+
+		mascot.PersonalityPreset = req.PresetID
 
 		if err := mascotRepo.SaveMascot(context.TODO(), userID, slot, mascot); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save mascot"})
@@ -767,7 +782,7 @@ func main() {
 	r.DELETE("/bgm-preset/:id", deleteBGMPreset(bgmRepo))
 	r.GET("/mascot", getMascot(mascotRepo))
 	r.POST("/mascot/action", postMascotAction(mascotRepo))
-	r.POST("/mascot/personality", postMascotPersonality(mascotRepo))
+	r.POST("/mascot/preset", postMascotPreset(mascotRepo))
 	r.POST("/mascot/shop/buy", postMascotShopBuy(mascotRepo))
 	r.PUT("/mascot/equip", putMascotEquip(mascotRepo))
 	r.POST("/mascot/unlock", postMascotUnlock(mascotRepo))

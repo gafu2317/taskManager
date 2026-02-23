@@ -53,7 +53,8 @@ func (r *MascotRepository) GetMascot(ctx context.Context, userID string, slot in
 			UserID:              userID,
 			CurrentPoints:       0,
 			TotalEarnedPoints:   0,
-			PersonalityParams:   models.PersonalityParams{},
+			PersonalityPreset:   "flat",
+			UnlockedPresets:     []string{"flat"},
 			OwnedAccessories:    []string{},
 			EquippedAccessories: []string{},
 			LastLoginDate:       now.Format("2006-01-02"),
@@ -72,6 +73,16 @@ func (r *MascotRepository) GetMascot(ctx context.Context, userID string, slot in
 	// 既存データの UnlockedSlots が 0 の場合は 1 に補正
 	if mascot.UnlockedSlots < 1 {
 		mascot.UnlockedSlots = 1
+	}
+
+	// 既存データの UnlockedPresets が nil の場合は補正
+	if mascot.UnlockedPresets == nil {
+		mascot.UnlockedPresets = []string{"flat"}
+	}
+
+	// 既存データの PersonalityPreset が空の場合は補正
+	if mascot.PersonalityPreset == "" {
+		mascot.PersonalityPreset = "flat"
 	}
 
 	return &mascot, nil

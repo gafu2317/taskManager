@@ -1,19 +1,33 @@
 export type MascotMood = 'idle' | 'happy' | 'cheering' | 'working';
 
-export type PersonalityParams = {
-  genki: number;       // 元気 (0〜10)
-  kibishisa: number;   // 厳しさ (0〜10)
-  amae: number;        // 甘え (0〜10)
-  tsundere: number;    // ツンデレ (0〜10)
-  majime: number;      // 真面目 (0〜10)
-  tennen: number;      // 天然 (0〜10)
+export type PersonalityPresetId =
+  | 'flat' | 'genki' | 'amaenbou' | 'tennen'
+  | 'tsundere' | 'majime' | 'nekketsu' | 'cool';
+
+export type PersonalityPreset = {
+  id: PersonalityPresetId;
+  name: string;
+  description: string;
+  cost: number;
 };
+
+export const PERSONALITY_PRESETS: PersonalityPreset[] = [
+  { id: 'flat',      name: 'フラット',       description: '性格なし。デフォルト状態。',          cost: 0   },
+  { id: 'genki',     name: '元気な子',       description: 'いつも元気いっぱい！',                cost: 100 },
+  { id: 'amaenbou',  name: '甘えん坊',       description: 'あなたのそばにいたい…',               cost: 150 },
+  { id: 'tennen',    name: '天然ボケ',       description: '独特の視点で話しかけてくる。',        cost: 150 },
+  { id: 'tsundere',  name: 'ツンデレ',       description: 'べ、別に応援してるわけじゃないし！',  cost: 200 },
+  { id: 'majime',    name: '真面目な優等生', description: 'データと実績で励ます。',              cost: 200 },
+  { id: 'nekketsu',  name: '熱血コーチ',     description: '全力で背中を押す！',                  cost: 300 },
+  { id: 'cool',      name: 'クールな先輩',   description: '静かだけど、ちゃんと見てる。',        cost: 300 },
+];
 
 export type MascotData = {
   user_id: string;
   current_points: number;
   total_earned_points: number;
-  personality_params: PersonalityParams;
+  personality_preset: string;
+  unlocked_presets: string[];
   owned_accessories: string[];
   equipped_accessories: string[];
   last_login_date: string;  // YYYY-MM-DD
@@ -47,32 +61,3 @@ export const ACCESSORIES: AccessoryInfo[] = [
   { id: 'scarf',   name: 'マフラー', price: 40  },
   { id: 'crown',   name: '王冠',     price: 200 },
 ];
-
-// 性格パラメータのメタ情報
-export type PersonalityParamKey = keyof PersonalityParams;
-
-export type PersonalityParamInfo = {
-  key: PersonalityParamKey;
-  name: string;   // 日本語名
-  lowLabel: string;   // 低い時の説明
-  highLabel: string;  // 高い時の説明
-};
-
-export const PERSONALITY_PARAMS: PersonalityParamInfo[] = [
-  { key: 'genki',      name: '元気',     lowLabel: '穏やか',   highLabel: 'テンション高め' },
-  { key: 'kibishisa',  name: '厳しさ',   lowLabel: 'やさしい', highLabel: '叱咤激励' },
-  { key: 'amae',       name: '甘え',     lowLabel: 'クール',   highLabel: '懐いてくる' },
-  { key: 'tsundere',   name: 'ツンデレ', lowLabel: '素直',     highLabel: '素直じゃない' },
-  { key: 'majime',     name: '真面目',   lowLabel: '気まぐれ', highLabel: '実績・数値を引用' },
-  { key: 'tennen',     name: '天然',     lowLabel: '普通',     highLabel: '独自視点' },
-];
-
-// 性格パラメータのデフォルト値
-export const DEFAULT_PERSONALITY_PARAMS: PersonalityParams = {
-  genki: 0, kibishisa: 0, amae: 0, tsundere: 0, majime: 0, tennen: 0,
-};
-
-// 性格パラメータの投資コスト計算（1Lv = 10pt）
-export function calcPersonalityCost(params: PersonalityParams): number {
-  return Object.values(params).reduce((sum, v) => sum + v, 0) * 10;
-}
