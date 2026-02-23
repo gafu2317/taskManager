@@ -6,22 +6,12 @@ import { useMascotDialogue, useMascotData } from '@/hooks/useMascot';
 import { getMascot, unlockMascotSlot } from '@/lib/api';
 import {
   PERSONALITY_PARAMS,
-  ACCESSORIES,
-  AccessoryId,
   PersonalityParams,
   calcPersonalityCost,
   DEFAULT_PERSONALITY_PARAMS,
   MAX_SLOTS,
   SLOT_UNLOCK_COSTS,
 } from '@/types/mascot';
-
-const ACCESSORY_EMOJI: Record<AccessoryId, string> = {
-  ribbon:  '🎀',
-  hat:     '🎩',
-  glasses: '👓',
-  scarf:   '🧣',
-  crown:   '👑',
-};
 
 const SLOT_COLORS = ['', 'bg-blue-100 border-blue-400', 'bg-pink-100 border-pink-400', 'bg-green-100 border-green-400'];
 const SLOT_LABELS = ['', 'キャラ 1', 'キャラ 2', 'キャラ 3'];
@@ -31,13 +21,11 @@ export default function MascotView() {
   const [unlockedSlots, setUnlockedSlots] = useState(1);
   const [unlocking, setUnlocking] = useState(false);
 
-  const { mascotData, loading, updatePersonality, buyAccessory, updateEquip } = useMascotData(activeSlot);
+  const { mascotData, loading, updatePersonality } = useMascotData(activeSlot);
   const { dialogue, visible } = useMascotDialogue('idle');
 
   const [params, setParams] = useState<PersonalityParams | null>(null);
   const [saving, setSaving] = useState(false);
-  const [shopLoading, setShopLoading] = useState<string | null>(null);
-
   // スロット1から解放済みスロット数を取得
   useEffect(() => {
     getMascot(1)
@@ -66,25 +54,6 @@ export default function MascotView() {
       setParams(null);
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleBuy = async (accessoryId: string) => {
-    setShopLoading(accessoryId);
-    try { await buyAccessory(accessoryId); }
-    finally { setShopLoading(null); }
-  };
-
-  const handleToggleEquip = async (accessoryId: string) => {
-    setShopLoading(accessoryId);
-    try {
-      const isEquipped = mascotData.equipped_accessories.includes(accessoryId);
-      const newEquipped = isEquipped
-        ? mascotData.equipped_accessories.filter(id => id !== accessoryId)
-        : [...mascotData.equipped_accessories, accessoryId];
-      await updateEquip(newEquipped);
-    } finally {
-      setShopLoading(null);
     }
   };
 
@@ -246,76 +215,15 @@ export default function MascotView() {
               <span className="text-gray-500">累計獲得</span>
               <span className="font-mono text-gray-500">{mascotData.total_earned_points} pt</span>
             </div>
-            {mascotData.equipped_accessories.length > 0 && (
-              <div className="flex justify-between text-sm items-center">
-                <span className="text-gray-500">装備中</span>
-                <span className="text-base">
-                  {mascotData.equipped_accessories.map(id => ACCESSORY_EMOJI[id as AccessoryId] ?? '').join('')}
-                </span>
-              </div>
-            )}
           </div>
           </div>
         </div>
 
         {/* 右列: ショップ */}
-        <div className="w-1/3 flex flex-col overflow-y-auto border-l border-gray-200 bg-white">
-          <div className="p-6">
-            <h2 className="text-base font-bold text-gray-700 mb-1">ショップ</h2>
-            <p className="text-sm text-gray-500 mb-4">
-              所持: <span className="font-mono font-bold text-gray-800">{mascotData.current_points} pt</span>
-            </p>
-
-            <div className="grid grid-cols-2 gap-3">
-              {ACCESSORIES.map(({ id, name, price }) => {
-                const isOwned    = mascotData.owned_accessories.includes(id);
-                const isEquipped = mascotData.equipped_accessories.includes(id);
-                const canAfford  = mascotData.current_points >= price;
-                const isLoading  = shopLoading === id;
-
-                return (
-                  <div
-                    key={id}
-                    className={`rounded-xl border p-3 flex flex-col items-center gap-2 ${
-                      isEquipped ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
-                    }`}
-                  >
-                    <div className="text-3xl">{ACCESSORY_EMOJI[id]}</div>
-                    <p className="text-xs font-medium text-gray-700">{name}</p>
-                    <p className="text-xs text-gray-400">{price} pt</p>
-
-                    {!isOwned && (
-                      <button
-                        onClick={() => handleBuy(id)}
-                        disabled={!canAfford || !!shopLoading}
-                        className="w-full py-1.5 rounded-lg text-xs font-bold text-white bg-blue-500 hover:bg-blue-600 disabled:bg-gray-200 disabled:text-gray-400"
-                      >
-                        {isLoading ? '...' : '購入'}
-                      </button>
-                    )}
-                    {isOwned && !isEquipped && (
-                      <button
-                        onClick={() => handleToggleEquip(id)}
-                        disabled={!!shopLoading}
-                        className="w-full py-1.5 rounded-lg text-xs font-bold text-white bg-green-500 hover:bg-green-600 disabled:opacity-50"
-                      >
-                        {isLoading ? '...' : '装備する'}
-                      </button>
-                    )}
-                    {isOwned && isEquipped && (
-                      <button
-                        onClick={() => handleToggleEquip(id)}
-                        disabled={!!shopLoading}
-                        className="w-full py-1.5 rounded-lg text-xs font-bold text-white bg-red-400 hover:bg-red-500 disabled:opacity-50"
-                      >
-                        {isLoading ? '...' : '外す'}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        <div className="w-1/3 flex flex-col items-center justify-center border-l border-gray-200 bg-white">
+          <p className="text-2xl mb-2">🛍️</p>
+          <p className="text-sm font-bold text-gray-400">Coming Soon</p>
+          <p className="text-xs text-gray-300 mt-1">ショップは準備中です</p>
         </div>
 
       </div>
