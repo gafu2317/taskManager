@@ -14,38 +14,42 @@ import {
 
 // ─── セリフ制御フック（既存の useMascot を改名） ───────────────────────
 
-export function useMascotDialogue(mood: MascotMood) {
+export function useMascotDialogue(mood: MascotMood, preset?: string) {
   const [dialogue, setDialogue] = useState<string>('');
   const [visible, setVisible] = useState(false);
   const prevMoodRef = useRef(mood);
+  const prevPresetRef = useRef(preset);
 
   // 初回マウント後にセリフをセット（SSR hydration mismatch 回避）
   useEffect(() => {
-    setDialogue(getDialogue(mood));
+    setDialogue(getDialogue(mood, preset));
     setVisible(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ムードが変わったらセリフを更新
+  // ムードまたはプリセットが変わったらセリフを更新
   useEffect(() => {
-    if (prevMoodRef.current !== mood) {
+    const moodChanged = prevMoodRef.current !== mood;
+    const presetChanged = prevPresetRef.current !== preset;
+    if (moodChanged || presetChanged) {
       prevMoodRef.current = mood;
-      fadeAndChange(mood);
+      prevPresetRef.current = preset;
+      fadeAndChange(mood, preset);
     }
-  }, [mood]);
+  }, [mood, preset]);
 
   // 12秒ごとにセリフをローテーション
   useEffect(() => {
     const interval = setInterval(() => {
-      fadeAndChange(mood);
+      fadeAndChange(mood, preset);
     }, 12000);
     return () => clearInterval(interval);
-  }, [mood]);
+  }, [mood, preset]);
 
-  function fadeAndChange(m: MascotMood) {
+  function fadeAndChange(m: MascotMood, p?: string) {
     setVisible(false);
     setTimeout(() => {
-      setDialogue(getDialogue(m));
+      setDialogue(getDialogue(m, p));
       setVisible(true);
     }, 200);
   }

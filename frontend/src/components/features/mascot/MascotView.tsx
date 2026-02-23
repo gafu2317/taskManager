@@ -19,7 +19,7 @@ export default function MascotView() {
   const [unlocking, setUnlocking] = useState(false);
 
   const { mascotData, loading, updatePreset } = useMascotData(activeSlot);
-  const { dialogue, visible } = useMascotDialogue('idle');
+  const { dialogue, visible } = useMascotDialogue('idle', mascotData.personality_preset);
 
   const [selecting, setSelecting] = useState<string | null>(null);
 
