@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthSessionProvider from '@/components/providers/SessionProvider';
 import LoginButton from '@/components/auth/LoginButton';
+import PointsDisplay from '@/components/layout/PointsDisplay';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,10 +32,11 @@ export default function RootLayout({
       >
         <AuthSessionProvider>
           <div className="flex flex-col h-screen">
-            <header className="bg-blue-600 text-white shadow-md shrink-0">
+            <header className="bg-blue-900 text-white shadow-md shrink-0">
               <div className="max-w-7xl mx-auto px-4 py-4 relative flex justify-center items-center">
                 <h1 className="text-2xl font-bold">Task Manager</h1>
-                <div className="absolute right-0">
+                <div className="absolute right-0 flex items-center gap-4">
+                  <PointsDisplay />
                   <LoginButton />
                 </div>
               </div>

@@ -82,6 +82,13 @@ export function useMascotData(slot = 1) {
   const [mascotData, setMascotData] = useState<MascotData>(DEFAULT_MASCOT_DATA);
   const [loading, setLoading] = useState(true);
 
+  // ポイントが変わったらヘッダーの PointsDisplay に通知
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('mascot-points-updated', {
+      detail: { points: mascotData.current_points },
+    }));
+  }, [mascotData.current_points]);
+
   useEffect(() => {
     setLoading(true);
     const load = async () => {
