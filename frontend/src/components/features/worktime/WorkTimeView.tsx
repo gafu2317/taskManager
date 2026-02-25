@@ -145,7 +145,9 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
       });
       setSessionsByDate(prev => ({ ...prev, [date]: (prev[date] ?? 0) + finalWork }));
       setSessionDetailsByDate(prev => ({ ...prev, [date]: [...(prev[date] ?? []), newSession] }));
-      postMascotAction('work_session', finalWork).catch(() => {});
+      postMascotAction('work_session', finalWork).then(res => {
+        if (res) window.dispatchEvent(new CustomEvent('mascot-points-updated', { detail: { points: res.current_points } }));
+      }).catch(() => {});
       onTaskUpdated();
     }
 

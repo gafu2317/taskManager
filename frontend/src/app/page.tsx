@@ -131,7 +131,9 @@ export default function Home() {
       setSelectedTaskId(null);
       
       await updateTask(taskId, { completed: true });
-      postMascotAction('task_complete').catch(() => {});
+      postMascotAction('task_complete').then(res => {
+        if (res) window.dispatchEvent(new CustomEvent('mascot-points-updated', { detail: { points: res.current_points } }));
+      }).catch(() => {});
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
     } catch (error) {
       console.error("Failed to complete task:", error);

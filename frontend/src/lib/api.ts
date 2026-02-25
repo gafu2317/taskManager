@@ -117,11 +117,11 @@ export async function getMascot(slot = 1): Promise<MascotData> {
 export async function postMascotAction(
   type: 'task_complete' | 'work_session' | 'login',
   workSeconds?: number
-): Promise<void> {
+): Promise<{ earned_points: number; current_points: number } | null> {
   const session = await getSession();
   const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
-  if (!isLoggedIn) return;
-  await dynamoApi.postMascotAction(type, workSeconds);
+  if (!isLoggedIn) return null;
+  return dynamoApi.postMascotAction(type, workSeconds);
 }
 
 export async function postMascotPreset(presetId: string, slot = 1): Promise<MascotData> {
