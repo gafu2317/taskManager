@@ -9,7 +9,7 @@ export default function LoginButton() {
   if (status === 'loading') {
     return (
       <div className="flex items-center space-x-2">
-        <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+        <div className="animate-spin h-5 w-5 border-2 border-ink border-t-transparent rounded-full"></div>
         <span>読み込み中...</span>
       </div>
     )
@@ -34,7 +34,7 @@ export default function LoginButton() {
         </div>
         <button
           onClick={() => signOut()}
-          className="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-sm transition-colors"
+          className="bg-mist hover:bg-sage text-ink px-3 py-1 rounded text-sm transition-colors"
         >
           ログアウト
         </button>
@@ -45,7 +45,7 @@ export default function LoginButton() {
   return (
     <button
       onClick={() => signIn('google')}
-      className="bg-white text-blue-600 hover:bg-gray-100 px-4 py-2 rounded font-medium transition-colors"
+      className="bg-ink text-white hover:bg-ink/80 px-4 py-2 rounded font-medium transition-colors"
     >
       Googleでログイン
     </button>

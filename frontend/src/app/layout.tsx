@@ -1,17 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Zen_Kaku_Gothic_New } from "next/font/google";
 import "./globals.css";
 import AuthSessionProvider from '@/components/providers/SessionProvider';
 import LoginButton from '@/components/auth/LoginButton';
 import PointsDisplay from '@/components/layout/PointsDisplay';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const zenKaku = Zen_Kaku_Gothic_New({
+  variable: "--font-zen-kaku",
+  weight: ["400", "700"],
   subsets: ["latin"],
 });
 
@@ -28,13 +24,13 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${zenKaku.variable} antialiased`}
       >
         <AuthSessionProvider>
           <div className="flex flex-col h-screen">
-            <header className="bg-blue-900 text-white shadow-md shrink-0">
+            <header className="bg-ink shrink-0 border-b-4 border-aqua">
               <div className="max-w-7xl mx-auto px-4 py-4 relative flex justify-center items-center">
-                <h1 className="text-2xl font-bold">Task Manager</h1>
+                <h1 className="text-2xl font-bold tracking-widest text-white">Task Manager</h1>
                 <div className="absolute right-0 flex items-center gap-4">
                   <PointsDisplay />
                   <LoginButton />

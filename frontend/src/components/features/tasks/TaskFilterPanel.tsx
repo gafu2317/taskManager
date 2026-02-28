@@ -33,7 +33,7 @@ const TaskFilterPanel = ({taskFilter, availableTags, onFilterChange}:TaskFilterP
   const sortedTags = [...availableTags].sort((a, b) => b.count - a.count);
 
   return (
-    <div className="w-full bg-blue-50 border border-blue-300 p-4 mb-4 rounded-lg">
+    <div className="w-full bg-white border border-aqua/20 p-4 mb-4 rounded-lg">
       {/* ヘッダー */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -53,14 +53,14 @@ const TaskFilterPanel = ({taskFilter, availableTags, onFilterChange}:TaskFilterP
           <select
             value={taskFilter.filterMode}
             onChange={(e) => handleModeChange(e.target.value as 'AND' | 'OR')}
-            className="text-xs border border-gray-300 rounded px-2 py-1"
+            className="text-xs border border-mist rounded px-2 py-1 bg-white text-ink"
           >
             <option value="AND">すべて含む (AND)</option>
             <option value="OR">いずれか含む (OR)</option>
           </select>
           <button
             onClick={handleToggleCollapse}
-            className="text-xs bg-gray-200 px-2 py-1 rounded hover:bg-gray-300"
+            className="text-xs bg-mist/50 border border-mist px-2 py-1 rounded hover:bg-mist text-ink"
           >
             {taskFilter.isCollapsed ? 'タグの展開' : 'タグを折りたたむ'}
           </button>
@@ -73,7 +73,7 @@ const TaskFilterPanel = ({taskFilter, availableTags, onFilterChange}:TaskFilterP
           {sortedTags.map(tag => (
             <label
               key={tag.name}
-              className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-gray-300 rounded text-xs cursor-pointer hover:bg-gray-50"
+              className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-mist rounded text-xs cursor-pointer hover:border-aqua hover:text-aqua text-ink"
             >
               <input
                 type="checkbox"
@@ -86,7 +86,7 @@ const TaskFilterPanel = ({taskFilter, availableTags, onFilterChange}:TaskFilterP
           ))}
         </div>
         {sortedTags.length === 0 && (
-          <p className="text-gray-500 text-xs">タグが見つかりません</p>
+          <p className="text-ink/40 text-xs">タグが見つかりません</p>
         )}
       </div>
 

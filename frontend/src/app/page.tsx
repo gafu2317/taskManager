@@ -183,9 +183,9 @@ export default function Home() {
   const selectedTask = tasks?.find(task => task.id === selectedTaskId);
 
   return (
-    <div className="flex flex-col flex-1 bg-gray-50 overflow-hidden">
+    <div className="flex flex-col flex-1 bg-mist overflow-hidden">
       {/* タブバー */}
-      <div className="flex items-center gap-1 px-4 pt-2 bg-white border-b border-gray-200 shrink-0">
+      <div className="flex items-center gap-0 px-6 bg-mist shrink-0">
         {([
           { key: 'tasks',    label: 'タスク管理',     icon: '📋' },
           { key: 'worktime', label: '作業時間記録',   icon: '⏱' },
@@ -194,10 +194,10 @@ export default function Home() {
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-t-lg text-sm font-medium border border-b-0 transition-colors ${
+            className={`flex items-center gap-1.5 px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === key
-                ? 'bg-blue-100 border-blue-300 text-blue-800'
-                : 'bg-white border-transparent text-gray-400 hover:text-gray-600 hover:bg-blue-50 hover:border-blue-200'
+                ? 'border-aqua text-aqua'
+                : 'border-transparent text-ink/40 hover:text-ink hover:border-ink/20'
             }`}
           >
             <span>{icon}</span>
@@ -210,14 +210,14 @@ export default function Home() {
       {activeTab === 'tasks' && (
         <div className="flex flex-1 overflow-hidden" onClick={handleContainerClick}>
           {/* 左列 - タスク作成 (20%) */}
-          <div className="w-1/5 bg-white border-r border-gray-200 p-6">
-            <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク作成</h2>
+          <div className="w-1/5 bg-white border-r border-mist p-6 overflow-auto">
+            <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3">タスク作成</h2>
             <TaskForm onTaskCreated={handleTaskCreated} />
           </div>
 
           {/* 中央列 - タスクバブル表示 (60%) */}
-          <div className="w-3/5 bg-white p-6 flex flex-col items-center">
-            <h2 className="text-lg font-semibold mb-6 text-gray-800">タスク一覧</h2>
+          <div className="flex-1 bg-white p-6 flex flex-col items-center overflow-hidden">
+            <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3 self-start">タスク一覧</h2>
             <TaskFilterPanel
               taskFilter={taskFilter}
               availableTags={availableTags}
@@ -240,14 +240,14 @@ export default function Home() {
           </div>
 
           {/* 右列 - タスク詳細 (20%) */}
-          <div className="w-1/5 bg-white border-l border-gray-200 flex flex-col overflow-hidden">
+          <div className="w-1/5 bg-white border-l border-mist flex flex-col overflow-hidden">
             {/* スクロール可能なコンテンツ領域 */}
             <div className="flex-1 overflow-y-auto p-6">
-              <h2 className="text-lg font-semibold mb-6 text-gray-800 flex flex-col items-center">タスク詳細</h2>
+              <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3">タスク詳細</h2>
               {selectedTask ? (
                 <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} onTaskComplete={handleTaskComplete} />
               ) : (
-                <p className="text-gray-500">タスクバブルをクリックして詳細を表示</p>
+                <p className="text-ink/40">タスクバブルをクリックして詳細を表示</p>
               )}
             </div>
             {/* マスコット（常に下端に固定） */}

@@ -39,7 +39,7 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
   // containerWidth と containerHeight は props から受け取る
   return (
     <>
-      <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden bg-gradient-to-b from-blue-50 to-blue-100"
+      <div className="relative border border-sage rounded-lg overflow-hidden bg-sage"
         style={{ width: containerWidth, height: containerHeight }}
         onClick={(e) => {
           e.stopPropagation();
@@ -48,11 +48,11 @@ const TaskBubbleView = ({tasks, loading, containerWidth, containerHeight, onTask
         }}>
         {loading ? (
           <div className="flex justify-center items-center h-full">
-            <p className="text-gray-600">バブルを読み込み中...</p>
+            <p className="text-ink/40">バブルを読み込み中...</p>
           </div>
         ) : tasks.length === 0 ? (
           <div className="flex justify-center items-center h-full">
-            <p className="text-gray-500">表示するタスクがありません</p>
+            <p className="text-ink/40">表示するタスクがありません</p>
           </div>
         ) : (
           // 風船表示

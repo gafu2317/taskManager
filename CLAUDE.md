@@ -23,6 +23,41 @@
 - [ ] タスク整理機能
 - [ ] 作業記録からタスク完了
 
+## デザイントークン（必ず守ること）
+
+カラー・フォントは `frontend/src/app/globals.css` で定義された変数を使う。
+
+### カラーパレット
+| 名前 | 値 | 用途 |
+|------|---|------|
+| `aqua` | #6E828A | プライマリアクセント（タブ・見出しボーダー・ボタン） |
+| `ink` | #143A52 | ヘッダー背景・ログアウトボタン・濃いテキスト |
+| `hot` | #143A52 | ink と同値（CTA用） |
+| `mist` | #E3EFF3 | ページ背景・タブバー |
+| `sage` | #CDE3EB | バブルエリアなどのサブ背景 |
+
+### Tailwindクラスの使い方
+| 用途 | クラス名 |
+|------|---------|
+| ページ背景・コンテンツエリア | `bg-white` |
+| タブバー背景 | `bg-white border-b border-mist` |
+| 列区切り | `border-r border-mist` / `border-l border-mist` |
+| テキスト（メイン） | `text-ink` |
+| テキスト（控えめ） | `text-ink/40` |
+| ボーダー | `border-mist` |
+| アクティブタブ | `border-b-2 border-aqua text-aqua` |
+| ヘッダータイトル | `text-aqua` |
+
+### フォント
+- **Zen Kaku Gothic New** のみ使用（`--font-zen-kaku`）
+- Inter・Roboto・Arial・Geist は使用禁止
+
+### 禁止事項
+- `bg-blue-*` `bg-gray-*` をプライマリ・背景に使わない
+- `text-gray-*` を地のテキストに使わない（`text-ink` / `text-ink/40` を使う）
+- `border-gray-200` だけで区切らない（`border-mist` を使う）
+- `rounded-lg + shadow-md` をデフォルトで使わない
+
 ## フロントエンドの規定
 ---
 name: frontend-design
