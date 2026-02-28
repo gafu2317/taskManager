@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Task } from '../../../types/task'
 import { createTask } from '../../../lib/api'
 import { getCostColor, getCostButtonSize } from '../../../utils/taskUtils'
@@ -7,7 +7,7 @@ interface TaskFormProps {
   onTaskCreated: () => void;
 }
 
-const TaskForm = ( props:TaskFormProps) => {
+const TaskForm = (props: TaskFormProps) => {
   const { onTaskCreated } = props;
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
@@ -16,18 +16,55 @@ const TaskForm = ( props:TaskFormProps) => {
   const [tags, setTags] = useState<string[]>([]);
   const [currentTag, setCurrentTag] = useState<string>('');
   const [showTagWarning, setShowTagWarning] = useState<boolean>(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggesting, setSuggesting] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // タイトルか説明が変わったらデバウンスして提案を取得
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (title.trim().length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setSuggesting(true);
+      try {
+        const res = await fetch('/api/suggest-tags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // 既に選択済みのタグは除外
+          setSuggestions((data.tags as string[]).filter(t => !tags.includes(t)));
+        }
+      } catch {
+        // 提案失敗は無視
+      } finally {
+        setSuggesting(false);
+      }
+    }, 1500);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, description]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // 未確定のタグがある場合の警告
+
     if (currentTag.trim()) {
       setShowTagWarning(true);
       return;
     }
-    
+
     setShowTagWarning(false);
-    
+
     const newTask: Omit<Task, 'id' | 'createdAt' | 'updatedAt'> = {
       title,
       description,
@@ -35,7 +72,7 @@ const TaskForm = ( props:TaskFormProps) => {
       cost,
       tags,
       completed: false,
-      userId : ""
+      userId: '',
     };
 
     try {
@@ -47,7 +84,8 @@ const TaskForm = ( props:TaskFormProps) => {
       setTags([]);
       setCurrentTag('');
       setShowTagWarning(false);
-      onTaskCreated(); // タスク作成後に親コンポーネントに通知
+      setSuggestions([]);
+      onTaskCreated();
     } catch (error) {
       console.error('Error creating task:', error);
     }
@@ -57,16 +95,16 @@ const TaskForm = ( props:TaskFormProps) => {
     const trimmedTag = tag.trim();
     if (trimmedTag && !tags.includes(trimmedTag)) {
       setTags([...tags, trimmedTag]);
+      setSuggestions(prev => prev.filter(s => s !== trimmedTag));
     }
     setCurrentTag('');
-    setShowTagWarning(false); // タグ追加時に警告を非表示
+    setShowTagWarning(false);
   };
 
   const handleTagKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleTagAdd(currentTag);
-      setCurrentTag('');
     }
   };
 
@@ -76,7 +114,6 @@ const TaskForm = ( props:TaskFormProps) => {
 
   return (
     <>
-      <h2 className="text-xl font-bold mb-4">新しいタスクを作成</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block mb-1 font-medium">タイトル</label>
@@ -110,9 +147,7 @@ const TaskForm = ( props:TaskFormProps) => {
                     ? 'border-3 border-gray-600 shadow-md transform scale-105'
                     : 'border-2 border-gray-300 hover:border-gray-400 hover:shadow-sm'
                 }`}
-                style={{
-                  backgroundColor: getCostColor(level)
-                }}
+                style={{ backgroundColor: getCostColor(level) }}
               >
                 {level}
               </button>
@@ -143,8 +178,8 @@ const TaskForm = ( props:TaskFormProps) => {
         </div>
         <div>
           <label className="block mb-1 font-medium">タグ（Enterキーで追加）</label>
-          
-          {/* 確定済みタグ表示エリア */}
+
+          {/* 確定済みタグ */}
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-2 p-2 bg-gray-50 rounded min-h-[40px]">
               {tags.map((tag, index) => (
@@ -165,8 +200,8 @@ const TaskForm = ( props:TaskFormProps) => {
               ))}
             </div>
           )}
-          
-          {/* タグ入力フィールド */}
+
+          {/* タグ入力 */}
           <input
             type="text"
             value={currentTag}
@@ -175,15 +210,35 @@ const TaskForm = ( props:TaskFormProps) => {
             placeholder="タグを入力してEnterキーで追加"
             className="w-full border px-3 py-2 rounded"
           />
-          
-          {/* 未確定タグ警告メッセージ */}
+
+          {/* 未確定タグ警告 */}
           {showTagWarning && currentTag.trim() && (
             <p className="text-red-500 text-sm mt-1 flex items-center">
               <span className="mr-1">⚠️</span>
               未確定のタグ「{currentTag.trim()}」があります。Enterキーを押してタグを追加してください。
             </p>
           )}
+
+          {/* タグ提案 */}
+          {(suggesting || suggestions.length > 0) && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-gray-400">
+                {suggesting ? '提案中...' : '✨ 提案:'}
+              </span>
+              {!suggesting && suggestions.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => handleTagAdd(tag)}
+                  className="text-xs px-2 py-0.5 rounded-full border border-blue-300 text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+                >
+                  + {tag}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+
         <button
           type="submit"
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
@@ -192,7 +247,7 @@ const TaskForm = ( props:TaskFormProps) => {
         </button>
       </form>
     </>
-  )
-}
+  );
+};
 
-export default TaskForm
+export default TaskForm;
