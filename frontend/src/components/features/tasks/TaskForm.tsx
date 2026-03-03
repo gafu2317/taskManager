@@ -5,11 +5,12 @@ import { getCostColor, getCostButtonSize } from '../../../utils/taskUtils'
 
 interface TaskFormProps {
   onTaskCreated: () => void;
+  initialTitle?: string;
 }
 
 const TaskForm = (props: TaskFormProps) => {
-  const { onTaskCreated } = props;
-  const [title, setTitle] = useState<string>('');
+  const { onTaskCreated, initialTitle } = props;
+  const [title, setTitle] = useState<string>(initialTitle ?? '');
   const [description, setDescription] = useState<string>('');
   const [importance, setImportance] = useState<number>(1);
   const [cost, setCost] = useState<number>(1);
@@ -102,7 +103,7 @@ const TaskForm = (props: TaskFormProps) => {
   };
 
   const handleTagKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleTagAdd(currentTag);
     }

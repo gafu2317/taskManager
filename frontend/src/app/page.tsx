@@ -14,6 +14,7 @@ import RegisterPrompt from "@/components/features/auth/RegisterPrompt";
 import WorkTimeView from "@/components/features/worktime/WorkTimeView";
 import Mascot from "@/components/features/mascot/Mascot";
 import MascotView from "@/components/features/mascot/MascotView";
+import InboxView from "@/components/features/inbox/InboxView";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 import { useMascot } from "../hooks/useMascot";
 import { getMood } from "../lib/mascotDialogue";
@@ -28,7 +29,7 @@ export default function Home() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRegisterPromptDismissed, setIsRegisterPromptDismissed] = useState(false);
   const [showRegisterPopup, setShowRegisterPopup] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tasks' | 'worktime' | 'mascot'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'worktime' | 'mascot' | 'inbox'>('tasks');
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
   const mood = getMood(tasks.length);
@@ -188,6 +189,7 @@ export default function Home() {
       <div className="flex items-center gap-0 px-6 bg-mist shrink-0">
         {([
           { key: 'tasks',    label: 'タスク管理',     icon: '📋' },
+          { key: 'inbox',    label: '投げ込み箱',     icon: '📥' },
           { key: 'worktime', label: '作業時間記録',   icon: '⏱' },
           { key: 'mascot',   label: 'キャラクター',   icon: '🐱' },
         ] as const).map(({ key, label, icon }) => (
@@ -261,6 +263,11 @@ export default function Home() {
       {/* 作業時間タブ */}
       {activeTab === 'worktime' && (
         <WorkTimeView tasks={tasks} onTaskUpdated={handleTaskUpdated} />
+      )}
+
+      {/* 投げ込み箱タブ */}
+      {activeTab === 'inbox' && (
+        <InboxView onTaskCreated={handleTaskCreated} mood={mood} dialogue={dialogue} mascotVisible={visible} />
       )}
 
       {/* キャラクタータブ */}
