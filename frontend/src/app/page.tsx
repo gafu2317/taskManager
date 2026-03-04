@@ -17,7 +17,6 @@ import MascotView from "@/components/features/mascot/MascotView";
 import InboxView from "@/components/features/inbox/InboxView";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 import { useMascot } from "../hooks/useMascot";
-import { getMood } from "../lib/mascotDialogue";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -32,8 +31,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'worktime' | 'mascot' | 'inbox'>('tasks');
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
-  const mood = getMood(tasks.length);
-  const { dialogue, visible } = useMascot(mood);
+  const { dialogue, visible } = useMascot('tasks');
   // ログイン状態変化時の処理
   useEffect(() => {
     const handleLogin = async () => {
@@ -254,7 +252,7 @@ export default function Home() {
             </div>
             {/* マスコット（常に下端に固定） */}
             <div className="shrink-0 px-6 pb-6">
-              <Mascot mood={mood} dialogue={dialogue} visible={visible} />
+              <Mascot mood="tasks" dialogue={dialogue} visible={visible} />
             </div>
           </div>
         </div>
@@ -267,7 +265,7 @@ export default function Home() {
 
       {/* 投げ込み箱タブ */}
       {activeTab === 'inbox' && (
-        <InboxView onTaskCreated={handleTaskCreated} mood={mood} dialogue={dialogue} mascotVisible={visible} />
+        <InboxView onTaskCreated={handleTaskCreated} />
       )}
 
       {/* キャラクタータブ */}

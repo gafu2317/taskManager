@@ -2,10 +2,10 @@ import Image from 'next/image';
 import { MascotMood } from '@/types/mascot';
 
 const moodImages: Record<MascotMood, string> = {
-  idle: '/mascot/idle.png',
-  happy: '/mascot/happy.png',
-  cheering: '/mascot/cheering.png',
-  working: '/mascot/working.png',
+  tasks:   '/mascot/happy.png',
+  inbox:   '/mascot/idle.png',
+  worktime: '/mascot/working.png',
+  mascot:  '/mascot/happy.png',
 };
 
 interface MascotProps {

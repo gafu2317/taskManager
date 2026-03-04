@@ -1,4 +1,4 @@
-export type MascotMood = 'idle' | 'happy' | 'cheering' | 'working';
+export type MascotMood = 'tasks' | 'inbox' | 'worktime' | 'mascot';
 
 export type PersonalityPresetId =
   | 'flat' | 'genki' | 'amaenbou' | 'tennen'

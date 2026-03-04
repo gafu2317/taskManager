@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import TaskForm from '../tasks/TaskForm';
 import Mascot from '../mascot/Mascot';
-import { MascotMood } from '@/types/mascot';
+import { useMascotDialogue } from '@/hooks/useMascot';
 
 type InboxItem = {
   id: string;
@@ -40,13 +40,11 @@ function relativeTime(isoString: string): string {
 
 interface InboxViewProps {
   onTaskCreated: () => void;
-  mood: MascotMood;
-  dialogue: string;
-  mascotVisible: boolean;
 }
 
-export default function InboxView({ onTaskCreated, mood, dialogue, mascotVisible }: InboxViewProps) {
+export default function InboxView({ onTaskCreated }: InboxViewProps) {
   const [items, setItems] = useState<InboxItem[]>([]);
+  const { dialogue, visible: mascotVisible } = useMascotDialogue('inbox');
   const [input, setInput] = useState('');
   const [promotingItem, setPromotingItem] = useState<InboxItem | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -116,7 +114,7 @@ export default function InboxView({ onTaskCreated, mood, dialogue, mascotVisible
           追加
         </button>
         <div className="mt-auto pt-4">
-          <Mascot mood={mood} dialogue={dialogue} visible={mascotVisible} />
+          <Mascot mood="inbox" dialogue={dialogue} visible={mascotVisible} />
         </div>
       </div>
 

@@ -6,7 +6,6 @@ import { WorkSession } from '@/types/session';
 import { createSession, getSessions, postMascotAction } from '@/lib/api';
 import Mascot from '@/components/features/mascot/Mascot';
 import { useMascot } from '@/hooks/useMascot';
-import { MascotMood } from '@/types/mascot';
 import BGMPlayer from './BGMPlayer';
 
 type TimerState = 'idle' | 'working' | 'on_break';
@@ -67,8 +66,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
 
   const selectedTask = tasks.find(t => t.id === selectedTaskId);
 
-  const worktimeMood: MascotMood = timerState === 'working' ? 'working' : 'idle';
-  const { dialogue, visible } = useMascot(worktimeMood);
+  const { dialogue, visible } = useMascot('worktime');
 
   useEffect(() => {
     const dates = getDateRange(WEEKS);
@@ -311,7 +309,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
       </div>
 
       <div className="w-80">
-        <Mascot mood={worktimeMood} dialogue={dialogue} visible={visible} />
+        <Mascot mood="worktime" dialogue={dialogue} visible={visible} />
       </div>
 
       </div>

@@ -19,7 +19,7 @@ export default function MascotView() {
   const [unlocking, setUnlocking] = useState(false);
 
   const { mascotData, loading, updatePreset } = useMascotData(activeSlot);
-  const { dialogue, visible } = useMascotDialogue('idle', mascotData.personality_preset);
+  const { dialogue, visible } = useMascotDialogue('mascot', mascotData.personality_preset);
 
   const [selecting, setSelecting] = useState<string | null>(null);
 
@@ -201,7 +201,7 @@ export default function MascotView() {
           {/* キャラ＋ポイント（残りスペースで中央揃え） */}
           <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8 w-full">
           <div className="w-full max-w-xs">
-            <Mascot mood="idle" dialogue={dialogue} visible={visible} />
+            <Mascot mood="mascot" dialogue={dialogue} visible={visible} />
           </div>
 
           <div className={`w-48 bg-gray-50 rounded-2xl p-4 flex flex-col gap-2 ${loading ? 'invisible' : ''}`}>
