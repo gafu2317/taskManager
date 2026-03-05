@@ -7,13 +7,14 @@ interface TaskBubbleProps {
   task: Task;
   x: number;
   y: number;
+  containerWidth: number;
   onBubbleClick: (taskId: string) => void;
   onTaskComplete: (taskId: string) => void;
   isSelected?: boolean;
 }
 
-const TaskBubble = ({ task, x, y, onBubbleClick, onTaskComplete, isSelected = false }: TaskBubbleProps) => {
-  const size = getTaskBubbleSize(task.cost);
+const TaskBubble = ({ task, x, y, containerWidth, onBubbleClick, onTaskComplete, isSelected = false }: TaskBubbleProps) => {
+  const size = getTaskBubbleSize(task.cost, containerWidth);
   const importanceColor = getCostColor(task.importance);
   const textColor = 'black'; // 全て黒文字
   

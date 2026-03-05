@@ -16,7 +16,7 @@ interface PhysicsBubbleProps {
 
 const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate, otherBubbles, selectedTaskId, onBubbleClick, onTaskComplete}:PhysicsBubbleProps) => {
   const [position, setPosition] = React.useState<{x: number, y: number}>(() => {
-    const radius = getTaskBubbleRadius(task.cost);
+    const radius = getTaskBubbleRadius(task.cost, containerWidth);
     return {
       x: radius + Math.random() * (containerWidth - 2 * radius), 
       y: radius + Math.random() * (containerHeight - 2 * radius)
@@ -54,7 +54,7 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
       }
 
       setPosition((prev) => {
-        const radius = getTaskBubbleRadius(task.cost);
+        const radius = getTaskBubbleRadius(task.cost, containerWidth);
         let newX = prev.x + velocityRef.current.x;
         let newY = prev.y + velocityRef.current.y;
         
@@ -118,7 +118,7 @@ const PhysicsBubble = ({task, containerHeight, containerWidth, onPositionUpdate,
 
   return (
   <>
-    <TaskBubble task={task} x={position.x} y={position.y} onBubbleClick={onBubbleClick} onTaskComplete={onTaskComplete} isSelected={selectedTaskId === task.id}></TaskBubble>
+    <TaskBubble task={task} x={position.x} y={position.y} containerWidth={containerWidth} onBubbleClick={onBubbleClick} onTaskComplete={onTaskComplete} isSelected={selectedTaskId === task.id}></TaskBubble>
   </>
   )
 }
