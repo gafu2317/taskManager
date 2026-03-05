@@ -2,7 +2,7 @@ const REFERENCE_WIDTH = 600;
 
 export const getTaskBubbleSize = (cost: number, containerWidth: number = REFERENCE_WIDTH): number => {
   const scale = Math.min(Math.max(containerWidth / REFERENCE_WIDTH, 0.5), 2.0);
-  return (cost * cost * 4 + 80) * scale;
+  return (cost * 7 + 43) * scale;
 };
 
 export const getTaskBubbleRadius = (cost: number, containerWidth: number = REFERENCE_WIDTH): number => {
