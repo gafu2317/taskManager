@@ -241,9 +241,9 @@ export default function BGMPlayer() {
         })}
       </div>
 
-      {/* マイプリセット */}
-      <p className="text-xs text-gray-400 mb-2">マイプリセット</p>
-      <div className="max-h-24 overflow-y-auto mb-2">
+      {/* マイプリセット - lg未満では非表示 */}
+      <p className="hidden lg:block text-xs text-gray-400 mb-2">マイプリセット</p>
+      <div className="hidden lg:block max-h-24 overflow-y-auto mb-2">
         {userPresets.length === 0 ? (
           <p className="text-xs text-gray-300">保存済みプリセットなし</p>
         ) : (
@@ -273,8 +273,8 @@ export default function BGMPlayer() {
         )}
       </div>
 
-      {/* 再生ボタンを上下中央に固定 */}
-      <div className="flex flex-col items-center gap-3 py-4">
+      {/* 再生ボタン */}
+      <div className="flex flex-col items-center gap-2 lg:gap-3 py-2 lg:py-4">
         <p className="text-xs text-gray-400">{nowPlayingLabel}</p>
         <button
           onClick={togglePlay}
@@ -298,8 +298,8 @@ export default function BGMPlayer() {
         </div>
       </div>
 
-      {/* URL入力・保存 */}
-      <div className="space-y-2 pb-4 mt-8">
+      {/* URL入力・保存 - lg未満では非表示 */}
+      <div className="hidden lg:block space-y-2 pb-4 mt-4 lg:mt-8">
         <input
           type="text"
           value={urlInput}
@@ -344,8 +344,8 @@ export default function BGMPlayer() {
         )}
       </div>
 
-      {/* ビジュアライザー */}
-      <div className="flex items-end gap-[3px] h-24 mt-auto -mx-2">
+      {/* ビジュアライザー - lg未満では非表示 */}
+      <div className="hidden lg:flex items-end gap-[3px] h-24 mt-auto -mx-2">
         {VISUALIZER_BARS.map((bar, i) => (
           <div
             key={i}

@@ -191,141 +191,146 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   });
 
   return (
-    <div className="flex flex-col xl:flex-row flex-1 pt-6 p-4 xl:pt-10 xl:p-8 bg-gray-50 overflow-y-auto">
+    <div className="flex flex-col lg:flex-row flex-1 overflow-hidden p-4 lg:p-8 gap-4 lg:gap-6 bg-gray-50">
 
-      {/* BGMプレイヤー */}
-      <div className="xl:flex-1 xl:flex xl:flex-col xl:pr-8 mb-6 xl:mb-0">
-        <BGMPlayer />
-      </div>
+      {/* BGM + タイマー: md では横並び、lg では lg:contents で外のflexに直接組み込む */}
+      <div className="flex flex-row gap-4 lg:contents min-h-0">
 
-      {/* タイマー */}
-      <div className="w-full xl:w-[32rem] shrink-0 flex flex-col gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-500 mb-2">タスク</label>
-          <select
-            value={selectedTaskId}
-            onChange={e => setSelectedTaskId(e.target.value)}
-            disabled={timerState !== 'idle'}
-            className="w-full p-4 text-base border border-gray-300 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:text-gray-400"
-          >
-            <option value="">-- タスクを選んでください --</option>
-            {tasks.map(task => (
-              <option key={task.id} value={task.id}>{task.title}</option>
-            ))}
-          </select>
+        {/* BGMプレイヤー */}
+        <div className="flex-1 lg:flex-1 flex flex-col min-h-0">
+          <BGMPlayer />
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 text-center">
-          <p className="text-xs font-medium tracking-widest uppercase text-gray-400 mb-4">
-            {statusLabel}
-          </p>
-          <div className="flex justify-center gap-12">
-            <div>
-              <p className="text-xs text-gray-400 mb-1">作業</p>
-              <p className="text-5xl font-mono font-bold tabular-nums text-gray-900">
-                {formatTime(totalWorkSeconds)}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-400 mb-1">休憩</p>
-              <p className="text-5xl font-mono font-bold tabular-nums text-gray-400">
-                {formatTime(totalBreakSeconds)}
-              </p>
-            </div>
+        {/* タイマー */}
+        <div className="flex-1 lg:flex-none lg:w-[28rem] lg:shrink-0 flex flex-col gap-3 lg:gap-6 min-h-0">
+          <div>
+            <label className="block text-sm font-medium text-gray-500 mb-2">タスク</label>
+            <select
+              value={selectedTaskId}
+              onChange={e => setSelectedTaskId(e.target.value)}
+              disabled={timerState !== 'idle'}
+              className="w-full p-3 lg:p-4 text-sm lg:text-base border border-gray-300 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:text-gray-400"
+            >
+              <option value="">-- タスクを選んでください --</option>
+              {tasks.map(task => (
+                <option key={task.id} value={task.id}>{task.title}</option>
+              ))}
+            </select>
           </div>
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-400 mb-1">このタスクの累計</p>
-            <p className="text-2xl font-mono font-semibold text-gray-500">
-              {formatTime(selectedTask?.totalWorkTime ?? 0)}
+
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 lg:p-6 text-center">
+            <p className="text-xs font-medium tracking-widest uppercase text-gray-400 mb-3 lg:mb-4">
+              {statusLabel}
             </p>
+            <div className="flex justify-center gap-4 lg:gap-12">
+              <div>
+                <p className="text-xs text-gray-400 mb-1">作業</p>
+                <p className="text-3xl lg:text-5xl font-mono font-bold tabular-nums text-gray-900">
+                  {formatTime(totalWorkSeconds)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 mb-1">休憩</p>
+                <p className="text-3xl lg:text-5xl font-mono font-bold tabular-nums text-gray-400">
+                  {formatTime(totalBreakSeconds)}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 lg:mt-4 lg:pt-4 border-t border-gray-100">
+              <p className="text-xs text-gray-400 mb-1">このタスクの累計</p>
+              <p className="text-xl lg:text-2xl font-mono font-semibold text-gray-500">
+                {formatTime(selectedTask?.totalWorkTime ?? 0)}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 lg:gap-4">
+            <button onClick={handleStart} disabled={timerState !== 'idle' || !selectedTaskId}
+              className="py-4 lg:py-7 rounded-2xl text-sm lg:text-xl font-bold text-white bg-green-500 hover:bg-green-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+              ▶ 作業開始
+            </button>
+            <button onClick={handleBreak} disabled={timerState !== 'working'}
+              className="py-4 lg:py-7 rounded-2xl text-sm lg:text-xl font-bold text-white bg-amber-400 hover:bg-amber-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+              ☕ 休憩
+            </button>
+            <button onClick={handleResumeWork} disabled={timerState !== 'on_break'}
+              className="py-4 lg:py-7 rounded-2xl text-sm lg:text-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+              ▶ 再開
+            </button>
+            <button onClick={handleEnd} disabled={timerState === 'idle'}
+              className="py-4 lg:py-7 rounded-2xl text-sm lg:text-xl font-bold text-white bg-red-400 hover:bg-red-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+              ■ 終了
+            </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button onClick={handleStart} disabled={timerState !== 'idle' || !selectedTaskId}
-            className="py-7 rounded-2xl text-xl font-bold text-white bg-green-500 hover:bg-green-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
-            ▶ 作業開始
-          </button>
-          <button onClick={handleBreak} disabled={timerState !== 'working'}
-            className="py-7 rounded-2xl text-xl font-bold text-white bg-amber-400 hover:bg-amber-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
-            ☕ 休憩
-          </button>
-          <button onClick={handleResumeWork} disabled={timerState !== 'on_break'}
-            className="py-7 rounded-2xl text-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
-            ▶ 再開
-          </button>
-          <button onClick={handleEnd} disabled={timerState === 'idle'}
-            className="py-7 rounded-2xl text-xl font-bold text-white bg-red-400 hover:bg-red-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
-            ■ 終了
-          </button>
-        </div>
       </div>
 
-      {/* 右列（カレンダー＋マスコット） */}
-      <div className="xl:flex-1 flex flex-col justify-center items-center gap-4 mt-6 xl:mt-0">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 shrink-0">
-        <p className="text-sm font-medium text-gray-500 mb-3">作業記録</p>
+      {/* カレンダー＋マスコット: md では横並び（下段）、lg では縦並び（右列） */}
+      <div className="flex flex-row lg:flex-col justify-center items-center gap-4 lg:flex-1 shrink-0 lg:shrink">
 
-        {/* 月ラベル */}
-        <div className="flex gap-1 mb-1 pl-6">
-          {weeks.map((_, wi) => (
-            <div key={wi} className="w-4 text-[9px] text-gray-400 text-center">
-              {monthLabels[wi] ? `${monthLabels[wi]}月` : ''}
-            </div>
-          ))}
-        </div>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 lg:p-5 shrink-0">
+          <p className="text-sm font-medium text-gray-500 mb-3">作業記録</p>
 
-        <div className="flex gap-1">
-          {/* 曜日ラベル */}
-          <div className="flex flex-col gap-1 mr-1">
-            {DAY_LABELS.map(d => (
-              <div key={d} className="w-4 h-4 flex items-center justify-center text-[9px] text-gray-400">
-                {d}
+          {/* 月ラベル */}
+          <div className="flex gap-1 mb-1 pl-6">
+            {weeks.map((_, wi) => (
+              <div key={wi} className="w-4 text-[9px] text-gray-400 text-center">
+                {monthLabels[wi] ? `${monthLabels[wi]}月` : ''}
               </div>
             ))}
           </div>
 
-          {/* 週ごとの列 */}
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-1">
-              {week.map(date => (
-                <div
-                  key={date}
-                  onClick={(e) => {
-                    if (selectedDate === date) {
-                      setSelectedDate(null);
-                      setPopoverPos(null);
-                    } else {
-                      setSelectedDate(date);
-                      const POPOVER_W = 208; // w-52
-                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                      const centerX = rect.left + rect.width / 2;
-                      const left = Math.min(Math.max(centerX - POPOVER_W / 2, 8), window.innerWidth - POPOVER_W - 8);
-                      const top = rect.bottom + 8;
-                      setPopoverPos({ x: left, y: top });
-                    }
-                  }}
-                  className={`w-4 h-4 rounded-sm cursor-pointer transition-opacity hover:opacity-70 ${getColorClass(sessionsByDate[date] ?? 0)} ${selectedDate === date ? 'ring-1 ring-blue-500 ring-offset-1' : ''}`}
-                />
+          <div className="flex gap-1">
+            {/* 曜日ラベル */}
+            <div className="flex flex-col gap-1 mr-1">
+              {DAY_LABELS.map(d => (
+                <div key={d} className="w-4 h-4 flex items-center justify-center text-[9px] text-gray-400">
+                  {d}
+                </div>
               ))}
             </div>
-          ))}
+
+            {/* 週ごとの列 */}
+            {weeks.map((week, wi) => (
+              <div key={wi} className="flex flex-col gap-1">
+                {week.map(date => (
+                  <div
+                    key={date}
+                    onClick={(e) => {
+                      if (selectedDate === date) {
+                        setSelectedDate(null);
+                        setPopoverPos(null);
+                      } else {
+                        setSelectedDate(date);
+                        const POPOVER_W = 208; // w-52
+                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const left = Math.min(Math.max(centerX - POPOVER_W / 2, 8), window.innerWidth - POPOVER_W - 8);
+                        const top = rect.bottom + 8;
+                        setPopoverPos({ x: left, y: top });
+                      }
+                    }}
+                    className={`w-4 h-4 rounded-sm cursor-pointer transition-opacity hover:opacity-70 ${getColorClass(sessionsByDate[date] ?? 0)} ${selectedDate === date ? 'ring-1 ring-blue-500 ring-offset-1' : ''}`}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* 凡例 */}
+          <div className="flex items-center gap-1 mt-3">
+            <span className="text-[9px] text-gray-400 mr-1">少</span>
+            {['bg-gray-100', 'bg-blue-100', 'bg-blue-200', 'bg-blue-400', 'bg-blue-600', 'bg-blue-800'].map(c => (
+              <div key={c} className={`w-4 h-4 rounded-sm ${c}`} />
+            ))}
+            <span className="text-[9px] text-gray-400 ml-1">多</span>
+          </div>
         </div>
 
-        {/* 凡例 */}
-        <div className="flex items-center gap-1 mt-3">
-          <span className="text-[9px] text-gray-400 mr-1">少</span>
-          {['bg-gray-100', 'bg-blue-100', 'bg-blue-200', 'bg-blue-400', 'bg-blue-600', 'bg-blue-800'].map(c => (
-            <div key={c} className={`w-4 h-4 rounded-sm ${c}`} />
-          ))}
-          <span className="text-[9px] text-gray-400 ml-1">多</span>
+        <div className="w-52 lg:w-80 shrink-0">
+          <Mascot mood="worktime" dialogue={dialogue} visible={visible} />
         </div>
-
-      </div>
-
-      <div className="w-80">
-        <Mascot mood="worktime" dialogue={dialogue} visible={visible} />
-      </div>
 
       </div>
 
