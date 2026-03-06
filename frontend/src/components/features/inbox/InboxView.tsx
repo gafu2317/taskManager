@@ -92,9 +92,9 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
   };
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      {/* 左カラム: 入力エリア (20%) */}
-      <div className="w-1/5 bg-white border-r border-mist p-6 flex flex-col gap-4 overflow-hidden">
+    <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-[176px_1fr] xl:grid-cols-[1fr_4fr]">
+      {/* 左カラム: 入力エリア */}
+      <div className="bg-white border-r border-mist p-4 xl:p-6 flex flex-col gap-4 overflow-y-auto">
         <h2 className="text-lg font-semibold text-ink border-l-4 border-aqua pl-3">投げ込む</h2>
         <p className="text-xs text-ink/40 leading-relaxed">
           まだ深く考えていないアイデアやタスク候補をここに書き留めておきましょう。後で整理できます。
@@ -120,8 +120,8 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
         </div>
       </div>
 
-      {/* 右カラム: リスト (80%) */}
-      <div className="flex-1 bg-white p-6 overflow-y-auto">
+      {/* 右カラム: リスト */}
+      <div className="bg-white p-4 xl:p-6 overflow-y-auto">
         <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3">
           投げ込み箱
           {items.length > 0 && (

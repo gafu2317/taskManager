@@ -69,10 +69,10 @@ export default function MascotView() {
     <div className="flex flex-col flex-1 overflow-hidden bg-gray-50">
 
       {/* メインコンテンツ（3カラム） */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-1 md:grid-cols-3">
 
         {/* 左列: 性格プリセット選択 */}
-        <div className="w-1/3 flex flex-col overflow-y-auto border-r border-gray-200 bg-white">
+        <div className="flex flex-col overflow-y-auto border-r border-gray-200 bg-white min-h-0">
           <div className="p-6">
             <h2 className="text-base font-bold text-gray-700 mb-1">性格プリセット</h2>
             <p className="text-xs text-gray-400 mb-4">解放済みのプリセットはいつでも無料で切り替えられます</p>
@@ -149,7 +149,7 @@ export default function MascotView() {
         </div>
 
         {/* 中央列: キャラクタープレビュー */}
-        <div className="w-1/3 flex flex-col items-center bg-white">
+        <div className="flex flex-col items-center bg-white overflow-y-auto min-h-0">
 
           {/* スロット選択（上端固定） */}
           <div className="flex items-center gap-2 pt-5 pb-3 shrink-0">
@@ -218,7 +218,7 @@ export default function MascotView() {
         </div>
 
         {/* 右列: ショップ */}
-        <div className="w-1/3 flex flex-col items-center justify-center border-l border-gray-200 bg-white">
+        <div className="flex flex-col items-center justify-center border-l border-gray-200 bg-white min-h-0">
           <p className="text-2xl mb-2">🛍️</p>
           <p className="text-sm font-bold text-gray-400">Coming Soon</p>
           <p className="text-xs text-gray-300 mt-1">ショップは準備中です</p>

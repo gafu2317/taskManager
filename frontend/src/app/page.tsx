@@ -211,15 +211,15 @@ export default function Home() {
 
       {/* タスク管理タブ */}
       {activeTab === 'tasks' && (
-        <div className="flex flex-1 overflow-hidden" onClick={handleContainerClick}>
-          {/* 左列 - タスク作成 (20%) */}
-          <div className="w-1/5 bg-white border-r border-mist p-6 overflow-auto">
+        <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-[176px_1fr_176px] xl:grid-cols-[1fr_3fr_1fr]" onClick={handleContainerClick}>
+          {/* 左列 - タスク作成 */}
+          <div className="bg-white border-r border-mist p-4 xl:p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3">タスク作成</h2>
             <TaskForm onTaskCreated={handleTaskCreated} />
           </div>
 
-          {/* 中央列 - タスクバブル表示 (60%) */}
-          <div className="flex-1 bg-white p-6 flex flex-col items-center overflow-hidden">
+          {/* 中央列 - タスクバブル表示 */}
+          <div className="bg-white p-4 xl:p-6 flex flex-col items-center overflow-hidden min-h-0">
             <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3 self-start">タスク一覧</h2>
             <TaskFilterPanel
               taskFilter={taskFilter}
@@ -242,10 +242,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* 右列 - タスク詳細 (20%) */}
-          <div className="w-1/5 bg-white border-l border-mist flex flex-col overflow-hidden">
-            {/* スクロール可能なコンテンツ領域 */}
-            <div className="flex-1 overflow-y-auto p-6">
+          {/* 右列 - タスク詳細 */}
+          <div className="bg-white border-l border-mist flex flex-col overflow-hidden min-h-0">
+            <div className="flex-1 overflow-y-auto p-4 xl:p-6">
               <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3">タスク詳細</h2>
               {selectedTask ? (
                 <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} onTaskComplete={handleTaskComplete} />
@@ -253,8 +252,7 @@ export default function Home() {
                 <p className="text-ink/40">タスクバブルをクリックして詳細を表示</p>
               )}
             </div>
-            {/* マスコット（常に下端に固定） */}
-            <div className="shrink-0 px-6 pb-6">
+            <div className="shrink-0 px-4 xl:px-6 pb-4 xl:pb-6">
               <Mascot mood="tasks" dialogue={dialogue} visible={visible} />
             </div>
           </div>
