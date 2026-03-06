@@ -105,7 +105,7 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="思いついたことを入力…&#10;Enterで追加、Shift+Enterで改行"
-          rows={5}
+          rows={3}
           className="w-full shrink-0 border border-mist rounded px-3 py-2 text-sm text-ink placeholder:text-ink/30 resize-none focus:outline-none focus:border-aqua transition-colors"
         />
         <button
@@ -115,7 +115,7 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
         >
           追加
         </button>
-        <div className="mt-auto pt-4">
+        <div className="mt-auto pt-4 w-20 xl:w-full mx-auto">
           <Mascot mood="inbox" dialogue={dialogue} visible={mascotVisible} />
         </div>
       </div>
