@@ -191,7 +191,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   });
 
   return (
-    <div className="grid flex-1 min-h-0 grid-cols-[1fr_2fr_2fr] xl:grid-cols-3 gap-4 p-4 xl:p-8 bg-gray-50 content-start overflow-y-auto overflow-x-hidden">
+    <div className="grid flex-1 min-h-0 grid-cols-3 gap-4 p-4 xl:p-8 bg-gray-50 content-start overflow-y-auto overflow-x-hidden">
 
       {/* BGMプレイヤー */}
       <div className="flex flex-col min-h-0">
@@ -269,7 +269,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
           {/* 月ラベル */}
           <div className="flex gap-1 mb-1 pl-6">
             {weeks.map((_, wi) => (
-              <div key={wi} className="w-4 text-[9px] text-gray-400 text-center">
+              <div key={wi} className="w-4 text-[9px] text-gray-400 text-center whitespace-nowrap overflow-visible">
                 {monthLabels[wi] ? `${monthLabels[wi]}月` : ''}
               </div>
             ))}
