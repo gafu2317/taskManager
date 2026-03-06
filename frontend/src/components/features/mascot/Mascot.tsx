@@ -12,14 +12,16 @@ interface MascotProps {
   mood: MascotMood;
   dialogue: string;
   visible: boolean;
+  fit?: 'width' | 'height';
 }
 
-export default function Mascot({ mood, dialogue, visible }: MascotProps) {
+export default function Mascot({ mood, dialogue, visible, fit = 'width' }: MascotProps) {
+  const heightFit = fit === 'height';
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className={`flex flex-col items-center ${heightFit ? 'h-full min-h-0' : 'w-full'}`}>
       {/* 吹き出し */}
       <div
-        className="relative bg-white border border-gray-200 rounded-xl shadow-md px-3 py-2 text-xs text-gray-700 whitespace-nowrap mb-1"
+        className="relative bg-white border border-gray-200 rounded-xl shadow-md px-3 py-2 text-xs text-gray-700 w-full text-center mb-1 shrink-0"
         style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.2s ease' }}
       >
         {dialogue}
@@ -42,15 +44,18 @@ export default function Mascot({ mood, dialogue, visible }: MascotProps) {
       </div>
 
       {/* キャラクター画像 */}
-      <div className="relative w-full aspect-square">
-        <Image
-          src={moodImages[mood]}
-          alt="maccat"
-          fill
-          className="object-contain drop-shadow-md"
-          draggable={false}
-        />
-      </div>
+      <Image
+        src={moodImages[mood]}
+        alt="maccat"
+        width={300}
+        height={450}
+        className="drop-shadow-md"
+        style={heightFit
+          ? { height: '100%', width: 'auto', minHeight: 0, flex: '1 1 0' }
+          : { width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '40vh' }
+        }
+        draggable={false}
+      />
     </div>
   );
 }

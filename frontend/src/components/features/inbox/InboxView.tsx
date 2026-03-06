@@ -94,9 +94,9 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
   return (
     <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-[1fr_4fr]">
       {/* 左カラム: 入力エリア */}
-      <div className="bg-white border-r border-mist p-4 xl:p-6 flex flex-col gap-4 overflow-y-auto">
-        <h2 className="text-lg font-semibold text-ink border-l-4 border-aqua pl-3">投げ込む</h2>
-        <p className="hidden xl:block text-xs text-ink/40 leading-relaxed">
+      <div className="bg-white border-r border-mist p-4 xl:p-6 flex flex-col gap-4 overflow-hidden">
+        <h2 className="shrink-0 text-lg font-semibold text-ink border-l-4 border-aqua pl-3">投げ込む</h2>
+        <p className="hidden xl:block shrink-0 text-xs text-ink/40 leading-relaxed">
           まだ深く考えていないアイデアやタスク候補をここに書き留めておきましょう。後で整理できます。
         </p>
         <textarea
@@ -111,12 +111,12 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
         <button
           onClick={addItem}
           disabled={!input.trim()}
-          className="w-full py-2 text-sm font-medium border border-aqua text-aqua rounded hover:bg-aqua hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full shrink-0 py-2 text-sm font-medium border border-aqua text-aqua rounded hover:bg-aqua hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           追加
         </button>
-        <div className="mt-auto pt-4">
-          <Mascot mood="inbox" dialogue={dialogue} visible={mascotVisible} />
+        <div className="flex-1 min-h-0 pt-2">
+          <Mascot mood="inbox" dialogue={dialogue} visible={mascotVisible} fit="height" />
         </div>
       </div>
 
