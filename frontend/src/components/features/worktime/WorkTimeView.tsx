@@ -199,7 +199,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
       </div>
 
       {/* タイマー */}
-      <div className="flex flex-col gap-4 xl:gap-6">
+      <div className="flex flex-col gap-4 xl:gap-6 min-h-0 overflow-hidden">
         <div>
           <label className="block text-sm font-medium text-gray-500 mb-2">タスク</label>
           <select
@@ -215,47 +215,47 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
           </select>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 xl:p-6 text-center">
-          <p className="text-xs font-medium tracking-widest uppercase text-gray-400 mb-3 xl:mb-4">
+        <div className="flex-1 min-h-0 bg-white rounded-2xl border border-gray-200 shadow-sm p-4 xl:p-6 text-center flex flex-col items-center justify-center">
+          <p className="text-sm font-medium tracking-widest uppercase text-gray-400 mb-4">
             {statusLabel}
           </p>
-          <div className="flex justify-center gap-6 xl:gap-12">
+          <div className="flex justify-center gap-8 xl:gap-16">
             <div>
-              <p className="text-xs text-gray-400 mb-1">作業</p>
-              <p className="text-3xl xl:text-5xl font-mono font-bold tabular-nums text-gray-900">
+              <p className="text-sm text-gray-400 mb-1">作業</p>
+              <p className="text-5xl xl:text-7xl font-mono font-bold tabular-nums text-gray-900">
                 {formatTime(totalWorkSeconds)}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-1">休憩</p>
-              <p className="text-3xl xl:text-5xl font-mono font-bold tabular-nums text-gray-400">
+              <p className="text-sm text-gray-400 mb-1">休憩</p>
+              <p className="text-5xl xl:text-7xl font-mono font-bold tabular-nums text-gray-400">
                 {formatTime(totalBreakSeconds)}
               </p>
             </div>
           </div>
-          <div className="mt-3 pt-3 xl:mt-4 xl:pt-4 border-t border-gray-100">
+          <div className="mt-4 pt-4 border-t border-gray-100 w-full">
             <p className="text-xs text-gray-400 mb-1">このタスクの累計</p>
-            <p className="text-xl xl:text-2xl font-mono font-semibold text-gray-500">
+            <p className="text-2xl xl:text-3xl font-mono font-semibold text-gray-500">
               {formatTime(selectedTask?.totalWorkTime ?? 0)}
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 xl:gap-4">
+        <div className="flex-1 min-h-0 grid grid-cols-2 grid-rows-2 gap-3 xl:gap-4">
           <button onClick={handleStart} disabled={timerState !== 'idle' || !selectedTaskId}
-            className="py-4 xl:py-7 rounded-2xl text-sm xl:text-xl font-bold text-white bg-green-500 hover:bg-green-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+            className="h-full rounded-2xl text-sm xl:text-xl font-bold text-white bg-green-500 hover:bg-green-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
             ▶ 作業開始
           </button>
           <button onClick={handleBreak} disabled={timerState !== 'working'}
-            className="py-4 xl:py-7 rounded-2xl text-sm xl:text-xl font-bold text-white bg-amber-400 hover:bg-amber-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+            className="h-full rounded-2xl text-sm xl:text-xl font-bold text-white bg-amber-400 hover:bg-amber-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
             ☕ 休憩
           </button>
           <button onClick={handleResumeWork} disabled={timerState !== 'on_break'}
-            className="py-4 xl:py-7 rounded-2xl text-sm xl:text-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+            className="h-full rounded-2xl text-sm xl:text-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
             ▶ 再開
           </button>
           <button onClick={handleEnd} disabled={timerState === 'idle'}
-            className="py-4 xl:py-7 rounded-2xl text-sm xl:text-xl font-bold text-white bg-red-400 hover:bg-red-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+            className="h-full rounded-2xl text-sm xl:text-xl font-bold text-white bg-red-400 hover:bg-red-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
             ■ 終了
           </button>
         </div>
