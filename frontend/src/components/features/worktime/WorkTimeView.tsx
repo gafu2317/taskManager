@@ -191,15 +191,15 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   });
 
   return (
-    <div className="flex flex-1 items-stretch pt-10 p-8 bg-gray-50">
+    <div className="flex flex-col xl:flex-row flex-1 pt-6 p-4 xl:pt-10 xl:p-8 bg-gray-50 overflow-y-auto">
 
       {/* BGMプレイヤー */}
-      <div className="flex-1 flex flex-col pr-8">
+      <div className="xl:flex-1 xl:flex xl:flex-col xl:pr-8 mb-6 xl:mb-0">
         <BGMPlayer />
       </div>
 
       {/* タイマー */}
-      <div className="w-[32rem] shrink-0 flex flex-col gap-6">
+      <div className="w-full xl:w-[32rem] shrink-0 flex flex-col gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-500 mb-2">タスク</label>
           <select
@@ -262,7 +262,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
       </div>
 
       {/* 右列（カレンダー＋マスコット） */}
-      <div className="flex-1 flex flex-col justify-center items-center gap-4">
+      <div className="xl:flex-1 flex flex-col justify-center items-center gap-4 mt-6 xl:mt-0">
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 shrink-0">
         <p className="text-sm font-medium text-gray-500 mb-3">作業記録</p>
 
@@ -297,7 +297,12 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
                       setPopoverPos(null);
                     } else {
                       setSelectedDate(date);
-                      setPopoverPos({ x: e.clientX, y: e.clientY });
+                      const POPOVER_W = 208; // w-52
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      const centerX = rect.left + rect.width / 2;
+                      const left = Math.min(Math.max(centerX - POPOVER_W / 2, 8), window.innerWidth - POPOVER_W - 8);
+                      const top = rect.bottom + 8;
+                      setPopoverPos({ x: left, y: top });
                     }
                   }}
                   className={`w-4 h-4 rounded-sm cursor-pointer transition-opacity hover:opacity-70 ${getColorClass(sessionsByDate[date] ?? 0)} ${selectedDate === date ? 'ring-1 ring-blue-500 ring-offset-1' : ''}`}
@@ -330,7 +335,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
           <div className="fixed inset-0 z-40" onClick={() => { setSelectedDate(null); setPopoverPos(null); }} />
           <div
             className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-3 w-52"
-            style={{ left: popoverPos.x - 104, top: popoverPos.y + 12 }}
+            style={{ left: popoverPos.x, top: popoverPos.y }}
           >
             <p className="text-xs font-semibold text-gray-600 mb-2">{selectedDate}</p>
             {(sessionDetailsByDate[selectedDate] ?? []).length === 0 ? (
