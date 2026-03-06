@@ -17,21 +17,16 @@ export default function LoginButton() {
 
   if (session) {
     return (
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          {session.user?.image && (
-            <Image
-              src={session.user.image}
-              alt="Profile"
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded-full"
-            />
-          )}
-          <span className="text-sm">
-            {session.user?.name || session.user?.email}
-          </span>
-        </div>
+      <div className="flex items-center space-x-2">
+        {session.user?.image && (
+          <Image
+            src={session.user.image}
+            alt="Profile"
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-full"
+          />
+        )}
         <button
           onClick={() => signOut()}
           className="bg-mist hover:bg-sage text-ink px-3 py-1 rounded text-sm transition-colors"

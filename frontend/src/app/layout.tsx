@@ -31,7 +31,7 @@ export default function RootLayout({
             <header className="bg-ink shrink-0 border-b-4 border-aqua">
               <div className="max-w-7xl mx-auto px-4 py-4 relative flex justify-center items-center">
                 <h1 className="text-2xl font-bold tracking-widest text-white">Task Manager</h1>
-                <div className="absolute right-0 flex items-center gap-4">
+                <div className="absolute right-4 flex items-center gap-4">
                   <PointsDisplay />
                   <LoginButton />
                 </div>

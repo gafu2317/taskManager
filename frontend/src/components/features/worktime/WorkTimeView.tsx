@@ -48,7 +48,7 @@ function getColorClass(seconds: number): string {
   return 'bg-blue-800';
 }
 
-const WEEKS = 16;
+const WEEKS = 10;
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps) {
