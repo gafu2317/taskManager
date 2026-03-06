@@ -210,8 +210,7 @@ export default function Home() {
       </div>
 
       {/* タスク管理タブ */}
-      {activeTab === 'tasks' && (
-        <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-[1fr_2fr_1fr] xl:grid-cols-[1fr_3fr_1fr]" onClick={handleContainerClick}>
+      <div className={`${activeTab === 'tasks' ? 'grid' : 'hidden'} flex-1 min-h-0 overflow-hidden grid-cols-[1fr_2fr_1fr] xl:grid-cols-[1fr_3fr_1fr]`} onClick={handleContainerClick}>
           {/* 左列 - タスク作成 */}
           <div className="bg-white border-r border-mist p-4 xl:p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3">タスク作成</h2>
@@ -257,22 +256,21 @@ export default function Home() {
             </div>
           </div>
         </div>
-      )}
 
       {/* 作業時間タブ */}
-      {activeTab === 'worktime' && (
+      <div className={activeTab === 'worktime' ? 'flex flex-1 min-h-0' : 'hidden'}>
         <WorkTimeView tasks={tasks} onTaskUpdated={handleTaskUpdated} />
-      )}
+      </div>
 
       {/* 投げ込み箱タブ */}
-      {activeTab === 'inbox' && (
+      <div className={activeTab === 'inbox' ? 'flex flex-1 min-h-0' : 'hidden'}>
         <InboxView onTaskCreated={handleTaskCreated} />
-      )}
+      </div>
 
       {/* キャラクタータブ */}
-      {activeTab === 'mascot' && (
+      <div className={activeTab === 'mascot' ? 'flex flex-1 min-h-0' : 'hidden'}>
         <MascotView />
-      )}
+      </div>
 
       {/* タスク編集モーダル */}
       {editingTask && (
