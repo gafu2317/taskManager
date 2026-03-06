@@ -1,9 +1,11 @@
 # taskManager
 
 ## 概要
-タスク管理を楽しく効率的にするWebアプリケーション
+
+タスク管理を楽しく効率的にするWebアプリケーション。
 
 ## 解決する課題
+
 多くの人がタスク管理ツールを使い始めても、途中で挫折してしまう問題に着目しました。主な原因は以下の3点です。
 
 1. **タスク管理画面を開くのが面倒**
@@ -13,29 +15,129 @@
 ## 解決策
 
 ### 1. タスク管理を楽しくする
-- **ポップなデザイン**: 視覚的に楽しい画面設計
-- **ちびキャラ育成機能**: タスク完了でキャラが成長し、継続的なモチベーションを提供
+- **ポップなデザイン**: 視覚的に楽しい画面設計（物理演算バブル表示）
+- **ちびキャラ育成機能**: タスク完了でポイントが貯まり、キャラが成長する
 
 ### 2. 効率的なタスク管理
-- **コスト × 優先度の可視化**: タスクの重要度と所要時間を明確に表示
-- **最適なタスク実行順の提案**: データに基づいた効率的なタスク処理をサポート
+- **コスト × 優先度の可視化**: タスクの重要度と所要時間を 1〜5 の数値で設定
+- **タグ管理**: 使用頻度に応じたタグを自動記録
 
 ### 3. タスク完了の習慣化
-- **ポモドーロタイマー**: 集中作業と休憩のリズムを作る
-- **BGM機能**: 作業に集中できる環境を提供
+- **BGM機能**: YouTube動画IDを登録して作業用BGMを再生
 - **常駐キャラクター**: 画面を開き続けやすくし、タスク完了を自然に促す
 
-## 主な機能
-- タスクの追加・編集・削除
-- コスト（所要時間）と優先度の設定
-- タスクの可視化と分析
-- ちびキャラ育成システム
-- ポモドーロタイマー
-- 作業用BGM再生
-- ゲストモード / ユーザー登録
+---
+
+## 実装済み機能
+
+### タスク管理
+- タスクの作成・編集・削除・完了管理
+- 重要度（1〜5）とコスト（1〜5）の設定
+- タグ付け（使用頻度・最終使用日を自動記録）
+- 物理演算バブル表示（サイズ = 重要度 / コスト の比率）
+- タスクフィルタリング（タグ・完了状態・重要度・コスト）
+- 投げ込み箱（タイトルのみのクイック入力）
+
+### 作業時間記録
+- ポモドーロタイマー（作業・休憩の切り替え）
+- 作業セッション記録（タスクごとの累積時間）
+- カレンダー表示（日別の作業時間ヒートマップ）
+- BGMプリセット管理（YouTube動画IDで登録・再生）
+
+### マスコット育成
+- ポイントシステム
+  - タスク完了: +10pt
+  - 作業セッション（30分ごと）: +10pt
+  - ログインボーナス（日次）: +5pt
+- 性格プリセット: `flat` / `genki` / `amaenbou` / `tennen` / `tsundere` / `majime` / `nekketsu` / `cool`
+- アクセサリショップ: ribbon(30pt) / hat(50pt) / glasses(80pt) / scarf(40pt) / crown(200pt)
+- スロット解放: 最大3スロット（スロット2: 500pt / スロット3: 1000pt）
+
+### 認証
+- ゲストモード（UserIDをローカル生成）
+- ユーザー登録（next-auth）
+
+---
 
 ## 技術スタック
-- **フロントエンド**: Next.js 14, TypeScript, TailwindCSS
-- **バックエンド**: Go, Gin, AWS Lambda
-- **データベース**: DynamoDB
-- **インフラ**: AWS (Lambda, API Gateway, S3), Vercel
+
+| レイヤー | 技術 | バージョン |
+|---------|------|----------|
+| フロントエンド | Next.js (App Router) | 16.x |
+| UI | React | 19.x |
+| 言語（フロント） | TypeScript | 5.x |
+| スタイリング | TailwindCSS | 4.x |
+| アニメーション | Framer Motion / GSAP | 12.x / 3.x |
+| 認証 | next-auth | 4.x |
+| バックエンド | Go + Gin | 1.23 / 1.10 |
+| データベース | AWS DynamoDB | - |
+| ホスティング | Google Cloud Run | - |
+
+---
+
+## API エンドポイント
+
+<!-- AUTO:api-endpoints -->
+| メソッド | パス | 説明 |
+|---------|------|------|
+| `GET` | `/health` | ヘルスチェック |
+| `POST` | `/tasks` | タスク作成 |
+| `GET` | `/tasks` | タスク一覧（`?completed=true/false`） |
+| `GET` | `/task/:id` | タスク取得 |
+| `PUT` | `/task/:id` | タスク更新 |
+| `DELETE` | `/task/:id` | タスク削除 |
+| `GET` | `/tags` | タグ一覧 |
+| `POST` | `/sessions` | 作業セッション記録 |
+| `GET` | `/sessions` | セッション一覧（`?date_from=&date_to=`） |
+| `POST` | `/bgm-presets` | BGMプリセット作成 |
+| `GET` | `/bgm-presets` | BGMプリセット一覧 |
+| `DELETE` | `/bgm-preset/:id` | BGMプリセット削除 |
+| `GET` | `/mascot` | マスコット取得（`?slot=1`） |
+| `POST` | `/mascot/action` | ポイント付与（task_complete / work_session / login） |
+| `POST` | `/mascot/preset` | 性格プリセット変更・解放 |
+| `POST` | `/mascot/shop/buy` | アクセサリ購入 |
+| `PUT` | `/mascot/equip` | アクセサリ装備 |
+| `POST` | `/mascot/unlock` | スロット解放 |
+<!-- /AUTO:api-endpoints -->
+
+---
+
+## 開発環境構築
+
+```bash
+# 1. DynamoDB Local 起動
+docker-compose up -d
+
+# 2. フロントエンド起動
+cd frontend && npm run dev
+
+# 3. バックエンド起動
+cd backend && go run main.go
+```
+
+| サービス | URL |
+|---------|-----|
+| フロントエンド | http://localhost:3000 |
+| バックエンド | http://localhost:8080 |
+| DynamoDB Local | http://localhost:8001 |
+
+---
+
+## インフラ
+
+- **バックエンド**: Google Cloud Run（`asia-northeast1`）
+- **データベース**: AWS DynamoDB（本番） / DynamoDB Local（開発）
+- **フロントエンド**: ローカル開発のみ（`.env.local` の `NEXT_PUBLIC_API_BASE_URL` で向き先を切り替え）
+
+バックエンドをデプロイするには：
+
+```bash
+cd backend
+gcloud run deploy task-manager-backend --source . --region asia-northeast1
+```
+
+---
+
+<!-- AUTO:updated -->
+最終更新: 2026-03-06
+<!-- /AUTO:updated -->
