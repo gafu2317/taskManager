@@ -191,85 +191,79 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   });
 
   return (
-    <div className="flex flex-col lg:flex-row flex-1 overflow-hidden p-4 lg:p-8 gap-4 lg:gap-6 bg-gray-50">
+    <div className="grid flex-1 grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_32rem_minmax(0,1fr)] gap-4 xl:gap-6 p-4 xl:p-8 bg-gray-50 overflow-auto">
 
-      {/* BGM + タイマー: md では横並び、lg では lg:contents で外のflexに直接組み込む */}
-      <div className="flex flex-row gap-4 lg:contents min-h-0">
+      {/* BGMプレイヤー */}
+      <div className="flex flex-col">
+        <BGMPlayer />
+      </div>
 
-        {/* BGMプレイヤー */}
-        <div className="flex-1 lg:flex-1 flex flex-col min-h-0">
-          <BGMPlayer />
+      {/* タイマー */}
+      <div className="flex flex-col gap-4 xl:gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-500 mb-2">タスク</label>
+          <select
+            value={selectedTaskId}
+            onChange={e => setSelectedTaskId(e.target.value)}
+            disabled={timerState !== 'idle'}
+            className="w-full p-3 xl:p-4 text-sm xl:text-base border border-gray-300 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:text-gray-400"
+          >
+            <option value="">-- タスクを選んでください --</option>
+            {tasks.map(task => (
+              <option key={task.id} value={task.id}>{task.title}</option>
+            ))}
+          </select>
         </div>
 
-        {/* タイマー */}
-        <div className="flex-1 lg:flex-none lg:w-[28rem] lg:shrink-0 flex flex-col gap-3 lg:gap-6 min-h-0">
-          <div>
-            <label className="block text-sm font-medium text-gray-500 mb-2">タスク</label>
-            <select
-              value={selectedTaskId}
-              onChange={e => setSelectedTaskId(e.target.value)}
-              disabled={timerState !== 'idle'}
-              className="w-full p-3 lg:p-4 text-sm lg:text-base border border-gray-300 rounded-2xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:text-gray-400"
-            >
-              <option value="">-- タスクを選んでください --</option>
-              {tasks.map(task => (
-                <option key={task.id} value={task.id}>{task.title}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 lg:p-6 text-center">
-            <p className="text-xs font-medium tracking-widest uppercase text-gray-400 mb-3 lg:mb-4">
-              {statusLabel}
-            </p>
-            <div className="flex justify-center gap-4 lg:gap-12">
-              <div>
-                <p className="text-xs text-gray-400 mb-1">作業</p>
-                <p className="text-3xl lg:text-5xl font-mono font-bold tabular-nums text-gray-900">
-                  {formatTime(totalWorkSeconds)}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-400 mb-1">休憩</p>
-                <p className="text-3xl lg:text-5xl font-mono font-bold tabular-nums text-gray-400">
-                  {formatTime(totalBreakSeconds)}
-                </p>
-              </div>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 xl:p-6 text-center">
+          <p className="text-xs font-medium tracking-widest uppercase text-gray-400 mb-3 xl:mb-4">
+            {statusLabel}
+          </p>
+          <div className="flex justify-center gap-6 xl:gap-12">
+            <div>
+              <p className="text-xs text-gray-400 mb-1">作業</p>
+              <p className="text-3xl xl:text-5xl font-mono font-bold tabular-nums text-gray-900">
+                {formatTime(totalWorkSeconds)}
+              </p>
             </div>
-            <div className="mt-3 pt-3 lg:mt-4 lg:pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-400 mb-1">このタスクの累計</p>
-              <p className="text-xl lg:text-2xl font-mono font-semibold text-gray-500">
-                {formatTime(selectedTask?.totalWorkTime ?? 0)}
+            <div>
+              <p className="text-xs text-gray-400 mb-1">休憩</p>
+              <p className="text-3xl xl:text-5xl font-mono font-bold tabular-nums text-gray-400">
+                {formatTime(totalBreakSeconds)}
               </p>
             </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-3 lg:gap-4">
-            <button onClick={handleStart} disabled={timerState !== 'idle' || !selectedTaskId}
-              className="py-4 lg:py-7 rounded-2xl text-sm lg:text-xl font-bold text-white bg-green-500 hover:bg-green-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
-              ▶ 作業開始
-            </button>
-            <button onClick={handleBreak} disabled={timerState !== 'working'}
-              className="py-4 lg:py-7 rounded-2xl text-sm lg:text-xl font-bold text-white bg-amber-400 hover:bg-amber-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
-              ☕ 休憩
-            </button>
-            <button onClick={handleResumeWork} disabled={timerState !== 'on_break'}
-              className="py-4 lg:py-7 rounded-2xl text-sm lg:text-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
-              ▶ 再開
-            </button>
-            <button onClick={handleEnd} disabled={timerState === 'idle'}
-              className="py-4 lg:py-7 rounded-2xl text-sm lg:text-xl font-bold text-white bg-red-400 hover:bg-red-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
-              ■ 終了
-            </button>
+          <div className="mt-3 pt-3 xl:mt-4 xl:pt-4 border-t border-gray-100">
+            <p className="text-xs text-gray-400 mb-1">このタスクの累計</p>
+            <p className="text-xl xl:text-2xl font-mono font-semibold text-gray-500">
+              {formatTime(selectedTask?.totalWorkTime ?? 0)}
+            </p>
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-3 xl:gap-4">
+          <button onClick={handleStart} disabled={timerState !== 'idle' || !selectedTaskId}
+            className="py-4 xl:py-7 rounded-2xl text-sm xl:text-xl font-bold text-white bg-green-500 hover:bg-green-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+            ▶ 作業開始
+          </button>
+          <button onClick={handleBreak} disabled={timerState !== 'working'}
+            className="py-4 xl:py-7 rounded-2xl text-sm xl:text-xl font-bold text-white bg-amber-400 hover:bg-amber-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+            ☕ 休憩
+          </button>
+          <button onClick={handleResumeWork} disabled={timerState !== 'on_break'}
+            className="py-4 xl:py-7 rounded-2xl text-sm xl:text-xl font-bold text-white bg-blue-500 hover:bg-blue-600 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+            ▶ 再開
+          </button>
+          <button onClick={handleEnd} disabled={timerState === 'idle'}
+            className="py-4 xl:py-7 rounded-2xl text-sm xl:text-xl font-bold text-white bg-red-400 hover:bg-red-500 active:scale-95 disabled:bg-gray-200 disabled:text-gray-400 transition-all shadow-sm">
+            ■ 終了
+          </button>
+        </div>
       </div>
 
-      {/* カレンダー＋マスコット: md では横並び（下段）、lg では縦並び（右列） */}
-      <div className="flex flex-row lg:flex-col justify-center items-center gap-4 lg:flex-1 shrink-0 lg:shrink">
-
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 lg:p-5 shrink-0">
+      {/* カレンダー＋マスコット: md では2列スパン（下段横並び）、xl では1列（右列縦並び） */}
+      <div className="md:col-span-2 xl:col-span-1 flex flex-row xl:flex-col justify-center items-center gap-4">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 xl:p-5 shrink-0">
           <p className="text-sm font-medium text-gray-500 mb-3">作業記録</p>
 
           {/* 月ラベル */}
@@ -303,12 +297,11 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
                         setPopoverPos(null);
                       } else {
                         setSelectedDate(date);
-                        const POPOVER_W = 208; // w-52
+                        const POPOVER_W = 208;
                         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                         const centerX = rect.left + rect.width / 2;
                         const left = Math.min(Math.max(centerX - POPOVER_W / 2, 8), window.innerWidth - POPOVER_W - 8);
-                        const top = rect.bottom + 8;
-                        setPopoverPos({ x: left, y: top });
+                        setPopoverPos({ x: left, y: rect.bottom + 8 });
                       }
                     }}
                     className={`w-4 h-4 rounded-sm cursor-pointer transition-opacity hover:opacity-70 ${getColorClass(sessionsByDate[date] ?? 0)} ${selectedDate === date ? 'ring-1 ring-blue-500 ring-offset-1' : ''}`}
@@ -328,10 +321,9 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
           </div>
         </div>
 
-        <div className="w-52 lg:w-80 shrink-0">
+        <div className="w-56 xl:w-80 shrink-0">
           <Mascot mood="worktime" dialogue={dialogue} visible={visible} />
         </div>
-
       </div>
 
       {/* ポップアップ */}
