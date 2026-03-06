@@ -71,70 +71,16 @@
 | 認証 | next-auth | 4.x |
 | バックエンド | Go + Gin | 1.23 / 1.10 |
 | データベース | AWS DynamoDB | - |
-| ホスティング | Google Cloud Run | - |
-
----
-
-## API エンドポイント
-
-<!-- AUTO:api-endpoints -->
-| メソッド | パス | 説明 |
-|---------|------|------|
-| `GET` | `/health` | ヘルスチェック |
-| `POST` | `/tasks` | タスク作成 |
-| `GET` | `/tasks` | タスク一覧（`?completed=true/false`） |
-| `GET` | `/task/:id` | タスク取得 |
-| `PUT` | `/task/:id` | タスク更新 |
-| `DELETE` | `/task/:id` | タスク削除 |
-| `GET` | `/tags` | タグ一覧 |
-| `POST` | `/sessions` | 作業セッション記録 |
-| `GET` | `/sessions` | セッション一覧（`?date_from=&date_to=`） |
-| `POST` | `/bgm-presets` | BGMプリセット作成 |
-| `GET` | `/bgm-presets` | BGMプリセット一覧 |
-| `DELETE` | `/bgm-preset/:id` | BGMプリセット削除 |
-| `GET` | `/mascot` | マスコット取得（`?slot=1`） |
-| `POST` | `/mascot/action` | ポイント付与（task_complete / work_session / login） |
-| `POST` | `/mascot/preset` | 性格プリセット変更・解放 |
-| `POST` | `/mascot/shop/buy` | アクセサリ購入 |
-| `PUT` | `/mascot/equip` | アクセサリ装備 |
-| `POST` | `/mascot/unlock` | スロット解放 |
-<!-- /AUTO:api-endpoints -->
-
----
-
-## 開発環境構築
-
-```bash
-# 1. DynamoDB Local 起動
-docker-compose up -d
-
-# 2. フロントエンド起動
-cd frontend && npm run dev
-
-# 3. バックエンド起動
-cd backend && go run main.go
-```
-
-| サービス | URL |
-|---------|-----|
-| フロントエンド | http://localhost:3000 |
-| バックエンド | http://localhost:8080 |
-| DynamoDB Local | http://localhost:8001 |
+| ホスティング（フロント） | Vercel | - |
+| ホスティング（バックエンド） | Google Cloud Run | - |
 
 ---
 
 ## インフラ
 
-- **バックエンド**: Google Cloud Run（`asia-northeast1`）
-- **データベース**: AWS DynamoDB（本番） / DynamoDB Local（開発）
-- **フロントエンド**: ローカル開発のみ（`.env.local` の `NEXT_PUBLIC_API_BASE_URL` で向き先を切り替え）
-
-バックエンドをデプロイするには：
-
-```bash
-cd backend
-gcloud run deploy task-manager-backend --source . --region asia-northeast1
-```
+- **フロントエンド**: Vercel
+- **バックエンド**: Google Cloud Run
+- **データベース**: AWS DynamoDB
 
 ---
 
