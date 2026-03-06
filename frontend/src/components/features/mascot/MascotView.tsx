@@ -69,7 +69,7 @@ export default function MascotView() {
     <div className="flex flex-col flex-1 overflow-hidden bg-gray-50">
 
       {/* メインコンテンツ（3カラム） */}
-      <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-1 md:grid-cols-3">
+      <div className="grid flex-1 min-h-0 overflow-y-auto overflow-x-hidden grid-cols-1 md:grid-cols-3">
 
         {/* 左列: 性格プリセット選択 */}
         <div className="flex flex-col overflow-y-auto border-r border-gray-200 bg-white min-h-0">
