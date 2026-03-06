@@ -92,7 +92,7 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
   };
 
   return (
-    <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-[2fr_3fr] xl:grid-cols-[1fr_4fr]">
+    <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-[1fr_4fr]">
       {/* 左カラム: 入力エリア */}
       <div className="bg-white border-r border-mist p-4 xl:p-6 flex flex-col gap-4 overflow-y-auto">
         <h2 className="text-lg font-semibold text-ink border-l-4 border-aqua pl-3">投げ込む</h2>
@@ -115,7 +115,7 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
         >
           追加
         </button>
-        <div className="mt-auto pt-4 w-20 xl:w-full mx-auto">
+        <div className="mt-auto pt-4 max-w-[45%] xl:max-w-full mx-auto w-full">
           <Mascot mood="inbox" dialogue={dialogue} visible={mascotVisible} />
         </div>
       </div>
