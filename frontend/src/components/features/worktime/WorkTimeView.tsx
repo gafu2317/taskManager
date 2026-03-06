@@ -191,7 +191,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   });
 
   return (
-    <div className="grid flex-1 min-h-0 grid-cols-3 gap-4 p-4 xl:p-8 bg-gray-50 content-start overflow-y-auto overflow-x-hidden">
+    <div className="grid flex-1 min-h-0 grid-cols-[2fr_3fr_2fr] gap-4 p-4 xl:p-8 bg-gray-50 overflow-hidden">
 
       {/* BGMプレイヤー */}
       <div className="flex flex-col min-h-0">
@@ -262,14 +262,14 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
       </div>
 
       {/* カレンダー＋マスコット: md では2列スパン（下段横並び）、xl では1列（右列縦並び） */}
-      <div className="flex flex-col justify-center items-center gap-4">
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 xl:p-5 shrink-0">
+      <div className="flex flex-col items-center gap-4 min-h-0 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 xl:p-5 w-full shrink-0">
           <p className="text-sm font-medium text-gray-500 mb-3">作業記録</p>
 
           {/* 月ラベル */}
           <div className="flex gap-1 mb-1 pl-6">
             {weeks.map((_, wi) => (
-              <div key={wi} className="w-4 text-[9px] text-gray-400 text-center whitespace-nowrap overflow-visible">
+              <div key={wi} className="flex-1 max-w-8 text-[9px] text-gray-400 text-center whitespace-nowrap overflow-visible">
                 {monthLabels[wi] ? `${monthLabels[wi]}月` : ''}
               </div>
             ))}
@@ -277,7 +277,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
 
           <div className="flex gap-1">
             {/* 曜日ラベル */}
-            <div className="flex flex-col gap-1 mr-1">
+            <div className="flex flex-col gap-1 mr-1 shrink-0">
               {DAY_LABELS.map(d => (
                 <div key={d} className="w-4 h-4 flex items-center justify-center text-[9px] text-gray-400">
                   {d}
@@ -287,7 +287,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
 
             {/* 週ごとの列 */}
             {weeks.map((week, wi) => (
-              <div key={wi} className="flex flex-col gap-1">
+              <div key={wi} className="flex-1 max-w-8 flex flex-col gap-1">
                 {week.map(date => (
                   <div
                     key={date}
@@ -304,7 +304,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
                         setPopoverPos({ x: left, y: rect.bottom + 8 });
                       }
                     }}
-                    className={`w-4 h-4 rounded-sm cursor-pointer transition-opacity hover:opacity-70 ${getColorClass(sessionsByDate[date] ?? 0)} ${selectedDate === date ? 'ring-1 ring-blue-500 ring-offset-1' : ''}`}
+                    className={`w-full aspect-square rounded-sm cursor-pointer transition-opacity hover:opacity-70 ${getColorClass(sessionsByDate[date] ?? 0)} ${selectedDate === date ? 'ring-1 ring-blue-500 ring-offset-1' : ''}`}
                   />
                 ))}
               </div>
@@ -321,8 +321,8 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
           </div>
         </div>
 
-        <div className="w-56 xl:w-80 shrink-0">
-          <Mascot mood="worktime" dialogue={dialogue} visible={visible} />
+        <div className="flex-1 min-h-0 w-full">
+          <Mascot mood="worktime" dialogue={dialogue} visible={visible} fit="height" />
         </div>
       </div>
 

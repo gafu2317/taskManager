@@ -51,7 +51,7 @@ export default function Mascot({ mood, dialogue, visible, fit = 'width' }: Masco
         height={450}
         className="drop-shadow-md"
         style={heightFit
-          ? { height: '100%', width: 'auto', minHeight: 0, flex: '1 1 0' }
+          ? { height: '100%', width: 'auto', maxWidth: '100%', minHeight: 0, flex: '1 1 0' }
           : { width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '40vh' }
         }
         draggable={false}
