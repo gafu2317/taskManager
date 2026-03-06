@@ -17,7 +17,10 @@
   --font-sans: var(--font-zen-kaku);
 }
 
+html,
 body {
+  height: 100%;
+  overflow: hidden;
   background: var(--mist);
   color: var(--ink);
 }
