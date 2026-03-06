@@ -191,7 +191,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   });
 
   return (
-    <div className="grid flex-1 grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_32rem_minmax(0,1fr)] gap-4 xl:gap-6 p-4 xl:p-8 bg-gray-50 content-start overflow-hidden">
+    <div className="grid flex-1 min-h-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_32rem_minmax(0,1fr)] gap-4 xl:gap-6 p-4 xl:p-8 bg-gray-50 content-start overflow-y-auto overflow-x-hidden">
 
       {/* BGMプレイヤー */}
       <div className="flex flex-col min-h-0">
