@@ -16,7 +16,7 @@ import Mascot from "@/components/features/mascot/Mascot";
 import MascotView from "@/components/features/mascot/MascotView";
 import InboxView from "@/components/features/inbox/InboxView";
 import { useTaskFilter } from "../hooks/useTaskFilter";
-import { useMascot } from "../hooks/useMascot";
+import { useMascot, fireMascotEvent } from "../hooks/useMascot";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -95,10 +95,11 @@ export default function Home() {
 
   const handleTaskCreated = async () => {
     setLoading(true);
+    fireMascotEvent('task_created');
     try {
       const fetchedTasks = await getTasks({completed: false});
       setTasks(fetchedTasks);
-      
+
       // ログインしていない場合のみ登録促進ポップアップ表示判定
       console.log('Task created. Total tasks:', fetchedTasks.length, 'Dismissed:', isRegisterPromptDismissed, 'Session:', !!session);
       if (!session && !isRegisterPromptDismissed && fetchedTasks.length >= 5) {
@@ -128,8 +129,10 @@ export default function Home() {
     try {
       // まず選択状態を解除して他のバブルを動かす
       setSelectedTaskId(null);
-      
+
       await updateTask(taskId, { completed: true });
+      fireMascotEvent('task_completed');
+      setTimeout(() => fireMascotEvent('points_gained'), 5500);
       postMascotAction('task_complete').then(res => {
         if (res) window.dispatchEvent(new CustomEvent('mascot-points-updated', { detail: { points: res.current_points } }));
       }).catch(() => {});

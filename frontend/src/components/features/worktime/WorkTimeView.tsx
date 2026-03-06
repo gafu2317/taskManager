@@ -5,7 +5,7 @@ import { Task } from '@/types/task';
 import { WorkSession } from '@/types/session';
 import { createSession, getSessions, postMascotAction } from '@/lib/api';
 import Mascot from '@/components/features/mascot/Mascot';
-import { useMascot } from '@/hooks/useMascot';
+import { useMascot, fireMascotEvent } from '@/hooks/useMascot';
 import BGMPlayer from './BGMPlayer';
 
 type TimerState = 'idle' | 'working' | 'on_break';
@@ -95,6 +95,13 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   const totalBreakSeconds =
     timerState === 'on_break' ? breakSeconds + currentSegmentSeconds : breakSeconds;
 
+  // 30分連続作業でセリフ（timerState が 'working' になった時点からのタイマー）
+  useEffect(() => {
+    if (timerState !== 'working') return;
+    const timer = setTimeout(() => fireMascotEvent('work_long'), 30 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, [timerState]);
+
   const handleStart = () => {
     if (!selectedTaskId) return;
     const now = Date.now();
@@ -104,6 +111,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
     setWorkSeconds(0);
     setBreakSeconds(0);
     setCurrentSegmentSeconds(0);
+    fireMascotEvent('work_started');
   };
 
   const handleBreak = () => {
@@ -143,6 +151,8 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
       });
       setSessionsByDate(prev => ({ ...prev, [date]: (prev[date] ?? 0) + finalWork }));
       setSessionDetailsByDate(prev => ({ ...prev, [date]: [...(prev[date] ?? []), newSession] }));
+      fireMascotEvent('work_ended');
+      setTimeout(() => fireMascotEvent('points_gained'), 5500);
       postMascotAction('work_session', finalWork).then(res => {
         if (res) window.dispatchEvent(new CustomEvent('mascot-points-updated', { detail: { points: res.current_points } }));
       }).catch(() => {});

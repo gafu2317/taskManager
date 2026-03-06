@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MascotMood, MascotData } from '../types/mascot';
-import { getDialogue } from '../lib/mascotDialogue';
+import { MascotMood, MascotEvent, MascotData } from '../types/mascot';
+import { getDialogue, getEventDialogue, fireMascotEvent, setCurrentPreset } from '../lib/mascotDialogue';
 import {
   getMascot,
   postMascotAction,
@@ -12,6 +12,10 @@ import {
   unlockMascotSlot,
 } from '../lib/api';
 
+// ─── モジュールレベルのフラグ ────────────────────────────────────────
+let timeEventFired = false;
+let idleEventCooldown = false;
+
 // ─── セリフ制御フック（既存の useMascot を改名） ───────────────────────
 
 export function useMascotDialogue(mood: MascotMood, preset?: string) {
@@ -19,6 +23,22 @@ export function useMascotDialogue(mood: MascotMood, preset?: string) {
   const [visible, setVisible] = useState(false);
   const prevMoodRef = useRef(mood);
   const prevPresetRef = useRef(preset);
+  // refs でクロージャ問題を回避
+  const moodRef = useRef(mood);
+  const presetRef = useRef(preset);
+  const eventActiveRef = useRef(false);
+  const eventRestoreRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  moodRef.current = mood;
+  presetRef.current = preset;
+
+  function fadeAndChange(m: MascotMood, p?: string) {
+    setVisible(false);
+    setTimeout(() => {
+      setDialogue(getDialogue(m, p));
+      setVisible(true);
+    }, 200);
+  }
 
   // 初回マウント後にセリフをセット（SSR hydration mismatch 回避）
   useEffect(() => {
@@ -38,24 +58,88 @@ export function useMascotDialogue(mood: MascotMood, preset?: string) {
     }
   }, [mood, preset]);
 
-  // 12秒ごとにセリフをローテーション
+  // 12秒ごとにセリフをローテーション（イベント表示中はスキップ）
   useEffect(() => {
     const interval = setInterval(() => {
-      fadeAndChange(mood, preset);
+      if (!eventActiveRef.current) {
+        fadeAndChange(moodRef.current, presetRef.current);
+      }
     }, 12000);
     return () => clearInterval(interval);
-  }, [mood, preset]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  function fadeAndChange(m: MascotMood, p?: string) {
-    setVisible(false);
-    setTimeout(() => {
-      setDialogue(getDialogue(m, p));
-      setVisible(true);
-    }, 200);
-  }
+  // イベントセリフ（5秒表示後に通常セリフへ戻る）
+  useEffect(() => {
+    const handleMascotEvent = (e: Event) => {
+      const { event } = (e as CustomEvent<{ event: MascotEvent }>).detail;
+      const text = getEventDialogue(event);
+
+      if (eventRestoreRef.current) clearTimeout(eventRestoreRef.current);
+      eventActiveRef.current = true;
+
+      setVisible(false);
+      setTimeout(() => {
+        setDialogue(text);
+        setVisible(true);
+        eventRestoreRef.current = setTimeout(() => {
+          eventActiveRef.current = false;
+          fadeAndChange(moodRef.current, presetRef.current);
+        }, 5000);
+      }, 200);
+    };
+
+    window.addEventListener('mascot-event', handleMascotEvent);
+    return () => window.removeEventListener('mascot-event', handleMascotEvent);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 時間帯チェック（アプリ起動後1回のみ）
+  useEffect(() => {
+    if (timeEventFired) return;
+    timeEventFired = true;
+    const hour = new Date().getHours();
+    const event: MascotEvent | null =
+      hour >= 5 && hour < 9   ? 'time_morning' :
+      hour >= 22 || hour < 4  ? 'time_night'   : null;
+    if (event) {
+      setTimeout(() => fireMascotEvent(event), 1500);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // アイドル検出（30秒操作がないと反応）
+  useEffect(() => {
+    let idleTimer: ReturnType<typeof setTimeout>;
+
+    const resetIdleTimer = () => {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        if (idleEventCooldown) return;
+        idleEventCooldown = true;
+        fireMascotEvent('idle');
+        setTimeout(() => { idleEventCooldown = false; }, 10000);
+      }, 30000);
+    };
+
+    resetIdleTimer();
+    window.addEventListener('mousemove', resetIdleTimer, { passive: true });
+    window.addEventListener('click', resetIdleTimer, { passive: true });
+    window.addEventListener('keydown', resetIdleTimer, { passive: true });
+
+    return () => {
+      clearTimeout(idleTimer);
+      window.removeEventListener('mousemove', resetIdleTimer);
+      window.removeEventListener('click', resetIdleTimer);
+      window.removeEventListener('keydown', resetIdleTimer);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return { dialogue, visible };
 }
+
+export { fireMascotEvent };
 
 // 後方互換: 既存コードが useMascot(mood) と呼んでいるため残す
 export function useMascot(mood: MascotMood) {
@@ -88,6 +172,13 @@ export function useMascotData(slot = 1) {
       detail: { points: mascotData.current_points },
     }));
   }, [mascotData.current_points]);
+
+  // プリセットが変わったらモジュールレベルのキャッシュを更新
+  useEffect(() => {
+    if (mascotData.personality_preset) {
+      setCurrentPreset(mascotData.personality_preset);
+    }
+  }, [mascotData.personality_preset]);
 
   useEffect(() => {
     setLoading(true);

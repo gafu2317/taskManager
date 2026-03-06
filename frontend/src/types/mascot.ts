@@ -1,5 +1,12 @@
 export type MascotMood = 'tasks' | 'inbox' | 'worktime' | 'mascot';
 
+export type MascotEvent =
+  | 'task_created' | 'task_completed'
+  | 'work_started' | 'work_ended' | 'work_long'
+  | 'inbox_added' | 'inbox_empty'
+  | 'time_morning' | 'time_night'
+  | 'idle' | 'points_gained';
+
 export type PersonalityPresetId =
   | 'flat' | 'genki' | 'amaenbou' | 'tennen'
   | 'tsundere' | 'majime' | 'nekketsu' | 'cool';

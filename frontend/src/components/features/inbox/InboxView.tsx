@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import TaskForm from '../tasks/TaskForm';
 import Mascot from '../mascot/Mascot';
-import { useMascotDialogue } from '@/hooks/useMascot';
+import { useMascotDialogue, fireMascotEvent } from '@/hooks/useMascot';
 
 type InboxItem = {
   id: string;
@@ -66,6 +66,7 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
     saveItems(updated);
     setInput('');
     textareaRef.current?.focus();
+    fireMascotEvent('inbox_added');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -79,6 +80,7 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
     const updated = items.filter((item) => item.id !== id);
     setItems(updated);
     saveItems(updated);
+    if (updated.length === 0) fireMascotEvent('inbox_empty');
   };
 
   const handlePromoted = () => {
