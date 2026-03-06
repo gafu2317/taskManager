@@ -191,7 +191,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
   });
 
   return (
-    <div className="grid flex-1 min-h-0 grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_32rem_minmax(0,1fr)] gap-4 xl:gap-6 p-4 xl:p-8 bg-gray-50 content-start overflow-y-auto overflow-x-hidden">
+    <div className="grid flex-1 min-h-0 grid-cols-[1fr_2fr_2fr] gap-4 p-4 xl:p-8 bg-gray-50 content-start overflow-y-auto overflow-x-hidden">
 
       {/* BGMプレイヤー */}
       <div className="flex flex-col min-h-0">
@@ -262,7 +262,7 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
       </div>
 
       {/* カレンダー＋マスコット: md では2列スパン（下段横並び）、xl では1列（右列縦並び） */}
-      <div className="md:col-span-2 xl:col-span-1 flex flex-row xl:flex-col justify-center items-center gap-4">
+      <div className="flex flex-col justify-center items-center gap-4">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 xl:p-5 shrink-0">
           <p className="text-sm font-medium text-gray-500 mb-3">作業記録</p>
 

@@ -96,7 +96,7 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
       {/* 左カラム: 入力エリア */}
       <div className="bg-white border-r border-mist p-4 xl:p-6 flex flex-col gap-4 overflow-y-auto">
         <h2 className="text-lg font-semibold text-ink border-l-4 border-aqua pl-3">投げ込む</h2>
-        <p className="text-xs text-ink/40 leading-relaxed">
+        <p className="hidden xl:block text-xs text-ink/40 leading-relaxed">
           まだ深く考えていないアイデアやタスク候補をここに書き留めておきましょう。後で整理できます。
         </p>
         <textarea
@@ -106,7 +106,7 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
           onKeyDown={handleKeyDown}
           placeholder="思いついたことを入力…&#10;Enterで追加、Shift+Enterで改行"
           rows={5}
-          className="w-full border border-mist rounded px-3 py-2 text-sm text-ink placeholder:text-ink/30 resize-none focus:outline-none focus:border-aqua transition-colors"
+          className="w-full shrink-0 border border-mist rounded px-3 py-2 text-sm text-ink placeholder:text-ink/30 resize-none focus:outline-none focus:border-aqua transition-colors"
         />
         <button
           onClick={addItem}
