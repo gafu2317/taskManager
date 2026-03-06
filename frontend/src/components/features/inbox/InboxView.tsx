@@ -115,7 +115,7 @@ export default function InboxView({ onTaskCreated }: InboxViewProps) {
         >
           追加
         </button>
-        <div className="mt-auto pt-4 max-w-[45%] xl:max-w-full mx-auto w-full">
+        <div className="mt-auto pt-4">
           <Mascot mood="inbox" dialogue={dialogue} visible={mascotVisible} />
         </div>
       </div>
