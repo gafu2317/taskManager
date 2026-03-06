@@ -211,7 +211,7 @@ export default function Home() {
 
       {/* タスク管理タブ */}
       {activeTab === 'tasks' && (
-        <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-[176px_1fr_176px] xl:grid-cols-[1fr_3fr_1fr]" onClick={handleContainerClick}>
+        <div className="grid flex-1 min-h-0 overflow-hidden grid-cols-[1fr_2fr_1fr] xl:grid-cols-[1fr_3fr_1fr]" onClick={handleContainerClick}>
           {/* 左列 - タスク作成 */}
           <div className="bg-white border-r border-mist p-4 xl:p-6 overflow-y-auto">
             <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3">タスク作成</h2>
