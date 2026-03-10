@@ -6,9 +6,10 @@ interface TaskDetailProps {
   onTaskDelete: (taskId: string) => void;
   onTaskEdit: (task: Task) => void;
   onTaskComplete: (taskId: string) => void;
+  onSplitTab?: () => void;
 }
 
-const TaskDetail = ({selectedTask, onTaskDelete, onTaskEdit, onTaskComplete}: TaskDetailProps) => {
+const TaskDetail = ({selectedTask, onTaskDelete, onTaskEdit, onTaskComplete, onSplitTab}: TaskDetailProps) => {
   return (
   <>
     <div className="space-y-3">
@@ -54,7 +55,7 @@ const TaskDetail = ({selectedTask, onTaskDelete, onTaskEdit, onTaskComplete}: Ta
       </div>
       
       {/* 操作ボタン */}
-      <div className="mt-6 pt-4 border-t border-gray-200 flex gap-2">
+      <div className="mt-6 pt-4 border-t border-gray-200 flex gap-2 flex-wrap">
         <button
           onClick={() => onTaskComplete(selectedTask.id)}
           className="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-2 rounded-md transition-colors text-xs"
@@ -73,6 +74,14 @@ const TaskDetail = ({selectedTask, onTaskDelete, onTaskEdit, onTaskComplete}: Ta
         >
           削除
         </button>
+        {onSplitTab && (
+          <button
+            onClick={onSplitTab}
+            className="w-full border border-aqua text-aqua hover:bg-aqua hover:text-white text-sm px-3 py-1.5 transition-colors"
+          >
+            ✂️ AIで分割する
+          </button>
+        )}
       </div>
     </div>
   </>

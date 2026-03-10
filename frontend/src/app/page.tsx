@@ -15,6 +15,7 @@ import WorkTimeView from "@/components/features/worktime/WorkTimeView";
 import Mascot from "@/components/features/mascot/Mascot";
 import MascotView from "@/components/features/mascot/MascotView";
 import InboxView from "@/components/features/inbox/InboxView";
+import TaskSplitView from "@/components/features/tasks/TaskSplitView";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 import { useMascot, fireMascotEvent } from "../hooks/useMascot";
 
@@ -28,7 +29,7 @@ export default function Home() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRegisterPromptDismissed, setIsRegisterPromptDismissed] = useState(false);
   const [showRegisterPopup, setShowRegisterPopup] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tasks' | 'worktime' | 'mascot' | 'inbox'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'worktime' | 'mascot' | 'inbox' | 'split'>('tasks');
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
   const { dialogue, visible } = useMascot('tasks');
@@ -157,6 +158,11 @@ export default function Home() {
     setTasks(fetchedTasks);
   };
 
+  const handleTaskSplit = async () => {
+    const fetchedTasks = await getTasks({completed: false});
+    setTasks(fetchedTasks);
+  };
+
   const handleTaskSelect = (taskId: string) => {
     if (taskId === '') {
       // 空文字は選択解除
@@ -193,6 +199,7 @@ export default function Home() {
           { key: 'inbox',    label: '投げ込み箱',     icon: '📥' },
           { key: 'worktime', label: '作業時間記録',   icon: '⏱' },
           { key: 'mascot',   label: 'キャラクター',   icon: '🐱' },
+          { key: 'split',    label: 'タスク分割',     icon: '✂️' },
         ] as const).map(({ key, label, icon }) => (
           <button
             key={key}
@@ -246,7 +253,7 @@ export default function Home() {
             <div className="flex-1 overflow-y-auto p-4 xl:p-6">
               <h2 className="text-lg font-semibold mb-6 text-ink border-l-4 border-aqua pl-3">タスク詳細</h2>
               {selectedTask ? (
-                <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} onTaskComplete={handleTaskComplete} />
+                <TaskDetail selectedTask={selectedTask} onTaskDelete={handleTaskDelete} onTaskEdit={handleTaskEdit} onTaskComplete={handleTaskComplete} onSplitTab={() => setActiveTab('split')} />
               ) : (
                 <p className="text-ink/40">タスクバブルをクリックして詳細を表示</p>
               )}
@@ -270,6 +277,14 @@ export default function Home() {
       {/* キャラクタータブ */}
       <div className={activeTab === 'mascot' ? 'flex flex-1 min-h-0' : 'hidden'}>
         <MascotView />
+      </div>
+
+      {/* タスク分割タブ */}
+      <div className={activeTab === 'split' ? 'flex flex-1 min-h-0' : 'hidden'}>
+        <TaskSplitView
+          tasks={tasks}
+          onSplitComplete={handleTaskSplit}
+        />
       </div>
 
       {/* タスク編集モーダル */}
