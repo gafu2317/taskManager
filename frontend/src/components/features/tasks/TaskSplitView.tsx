@@ -1,14 +1,108 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Reorder, useDragControls } from 'framer-motion';
 import { createTask } from '../../../lib/api';
 
 interface SubTaskDraft {
+  id: string;
   title: string;
   description: string;
   importance: number;
   cost: number;
   tags: string[];
+}
+
+function SubtaskCard({
+  subtask,
+  index,
+  anyDragging,
+  onDragStart,
+  onDragEnd,
+  onChange,
+  onRemove,
+}: {
+  subtask: SubTaskDraft;
+  index: number;
+  anyDragging: boolean;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onChange: (field: keyof SubTaskDraft, value: string | number | string[]) => void;
+  onRemove: () => void;
+}) {
+  const controls = useDragControls();
+  const [isDragging, setIsDragging] = useState(false);
+  const [displayIndex, setDisplayIndex] = useState(index);
+
+  useEffect(() => {
+    if (!anyDragging) setDisplayIndex(index);
+  }, [index, anyDragging]);
+
+  return (
+    <Reorder.Item
+      value={subtask}
+      dragListener={false}
+      dragControls={controls}
+      onDragStart={() => { setIsDragging(true); onDragStart(); }}
+      onDragEnd={() => { setIsDragging(false); onDragEnd(); }}
+      style={{ position: 'relative', zIndex: isDragging ? 10 : 1 }}
+      className="flex items-start gap-3 p-3 border border-mist rounded hover:border-aqua/40 transition-colors group bg-white cursor-default"
+    >
+      {/* ドラッグハンドル */}
+      <span
+        onPointerDown={e => controls.start(e)}
+        className="mt-0.5 text-ink/20 hover:text-ink/50 cursor-grab active:cursor-grabbing select-none shrink-0 text-sm leading-5"
+        title="ドラッグで並び替え"
+      >
+        ⠿
+      </span>
+      <span className="mt-0.5 bg-sage text-ink text-xs w-5 h-5 flex items-center justify-center rounded shrink-0 font-medium">
+        {displayIndex + 1}
+      </span>
+      <div className="flex-1 min-w-0 space-y-1">
+        <input
+          value={subtask.title}
+          onChange={e => onChange('title', e.target.value)}
+          placeholder="タイトル"
+          className="w-full text-sm text-ink bg-transparent focus:outline-none border-b border-transparent focus:border-mist"
+        />
+        <div className="flex items-center gap-3 text-xs text-ink/40">
+          <input
+            value={subtask.description}
+            onChange={e => onChange('description', e.target.value)}
+            placeholder="説明（任意）"
+            className="flex-1 bg-transparent focus:outline-none text-ink/50 min-w-0"
+          />
+          <label className="shrink-0 flex items-center gap-0.5">
+            ★
+            <select
+              value={subtask.importance}
+              onChange={e => onChange('importance', Number(e.target.value))}
+              className="border border-mist text-ink text-xs px-1 py-0.5 focus:outline-none focus:border-aqua rounded"
+            >
+              {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </label>
+          <label className="shrink-0 flex items-center gap-0.5">
+            ⏱
+            <select
+              value={subtask.cost}
+              onChange={e => onChange('cost', Number(e.target.value))}
+              className="border border-mist text-ink text-xs px-1 py-0.5 focus:outline-none focus:border-aqua rounded"
+            >
+              {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </label>
+        </div>
+      </div>
+      <button
+        onClick={onRemove}
+        className="opacity-0 group-hover:opacity-100 text-ink/30 hover:text-ink/60 text-xs transition-opacity shrink-0"
+      >
+        ✕
+      </button>
+    </Reorder.Item>
+  );
 }
 
 interface TaskSplitViewProps {
@@ -26,6 +120,7 @@ export default function TaskSplitView({ onSplitComplete }: TaskSplitViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const [doneCount, setDoneCount] = useState(0);
+  const [anyDragging, setAnyDragging] = useState(false);
 
   const parsedTags = inputTagsRaw.split(',').map(t => t.trim()).filter(Boolean);
 
@@ -53,7 +148,7 @@ export default function TaskSplitView({ onSplitComplete }: TaskSplitViewProps) {
         throw new Error('サブタスクを生成できませんでした。開発者ツールのコンソールを確認してください');
       }
 
-      setSubtasks(data.subtasks);
+      setSubtasks(data.subtasks.map((st: Omit<SubTaskDraft, 'id'>) => ({ ...st, id: crypto.randomUUID() })));
       setStep('edit');
     } catch (e) {
       setError(e instanceof Error ? e.message : '分割に失敗しました');
@@ -67,6 +162,7 @@ export default function TaskSplitView({ onSplitComplete }: TaskSplitViewProps) {
 
   const handleAddSubtask = () => {
     setSubtasks(prev => [...prev, {
+      id: crypto.randomUUID(),
       title: '',
       description: '',
       importance: 3,
@@ -195,59 +291,26 @@ export default function TaskSplitView({ onSplitComplete }: TaskSplitViewProps) {
         {/* 編集 */}
         {step === 'edit' && (
           <>
-            <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
-              {subtasks.map((st, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 p-3 border border-mist rounded hover:border-aqua/40 transition-colors group"
-                >
-                  <span className="mt-0.5 bg-sage text-ink text-xs w-5 h-5 flex items-center justify-center rounded shrink-0 font-medium">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <input
-                      value={st.title}
-                      onChange={e => handleSubtaskChange(i, 'title', e.target.value)}
-                      placeholder="タイトル"
-                      className="w-full text-sm text-ink bg-transparent focus:outline-none border-b border-transparent focus:border-mist"
-                    />
-                    <div className="flex items-center gap-3 text-xs text-ink/40">
-                      <input
-                        value={st.description}
-                        onChange={e => handleSubtaskChange(i, 'description', e.target.value)}
-                        placeholder="説明（任意）"
-                        className="flex-1 bg-transparent focus:outline-none text-ink/50 min-w-0"
-                      />
-                      <label className="shrink-0 flex items-center gap-0.5">
-                        ★
-                        <select
-                          value={st.importance}
-                          onChange={e => handleSubtaskChange(i, 'importance', Number(e.target.value))}
-                          className="border border-mist text-ink text-xs px-1 py-0.5 focus:outline-none focus:border-aqua rounded"
-                        >
-                          {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
-                        </select>
-                      </label>
-                      <label className="shrink-0 flex items-center gap-0.5">
-                        ⏱
-                        <select
-                          value={st.cost}
-                          onChange={e => handleSubtaskChange(i, 'cost', Number(e.target.value))}
-                          className="border border-mist text-ink text-xs px-1 py-0.5 focus:outline-none focus:border-aqua rounded"
-                        >
-                          {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
-                        </select>
-                      </label>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRemoveSubtask(i)}
-                    className="opacity-0 group-hover:opacity-100 text-ink/30 hover:text-ink/60 text-xs transition-opacity shrink-0"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <Reorder.Group
+                axis="y"
+                values={subtasks}
+                onReorder={setSubtasks}
+                className="space-y-2"
+              >
+                {subtasks.map((st, i) => (
+                  <SubtaskCard
+                    key={st.id}
+                    subtask={st}
+                    index={i}
+                    anyDragging={anyDragging}
+                    onDragStart={() => setAnyDragging(true)}
+                    onDragEnd={() => setAnyDragging(false)}
+                    onChange={(field, value) => handleSubtaskChange(i, field, value)}
+                    onRemove={() => handleRemoveSubtask(i)}
+                  />
+                ))}
+              </Reorder.Group>
 
               <button
                 onClick={handleAddSubtask}
