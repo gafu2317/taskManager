@@ -47,20 +47,28 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({
       model: 'llama-3.1-8b-instant',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 600,
+      messages: [
+        { role: 'system', content: 'You are a task management assistant. Always respond with valid JSON only, no markdown, no extra text.' },
+        { role: 'user', content: prompt },
+      ],
+      max_tokens: 1000,
       temperature: 0.3,
+      response_format: { type: 'json_object' },
     }),
   }).catch(() => null);
 
-  if (!groqRes?.ok) return NextResponse.json({ subtasks: [] });
+  if (!groqRes?.ok) {
+    const errText = await groqRes?.text().catch(() => '(read error)');
+    console.error(`=== split-task Groq error: status=${groqRes?.status} body=${errText} ===`);
+    return NextResponse.json({ subtasks: [] });
+  }
 
   const groqData = await groqRes.json();
   const text: string = groqData.choices?.[0]?.message?.content ?? '';
+  console.log('=== split-task Groq response ===\n' + text + '\n================================');
 
   try {
-    const match = text.match(/\{[\s\S]*\}/);
-    const parsed = JSON.parse(match?.[0] ?? '{}');
+    const parsed = JSON.parse(text);
     const subtasks: SubTaskDraft[] = Array.isArray(parsed.subtasks)
       ? parsed.subtasks
           .filter((s: unknown): s is SubTaskDraft =>
@@ -78,7 +86,8 @@ export async function POST(req: NextRequest) {
           .slice(0, 5)
       : [];
     return NextResponse.json({ subtasks });
-  } catch {
+  } catch (e) {
+    console.error('=== split-task parse error ===', e, '\nraw text:', text);
     return NextResponse.json({ subtasks: [] });
   }
 }
