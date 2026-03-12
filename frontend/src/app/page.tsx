@@ -262,7 +262,7 @@ export default function Home() {
 
       {/* 作業時間タブ */}
       <div className={activeTab === 'worktime' ? 'flex flex-1 min-h-0' : 'hidden'}>
-        <WorkTimeView tasks={tasks} onTaskUpdated={handleTaskUpdated} />
+        <WorkTimeView tasks={tasks} onTaskUpdated={handleTaskUpdated} onTaskComplete={handleTaskComplete} />
       </div>
 
       {/* 投げ込み箱タブ */}

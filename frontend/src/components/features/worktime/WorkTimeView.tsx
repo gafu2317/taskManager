@@ -13,6 +13,7 @@ type TimerState = 'idle' | 'working' | 'on_break';
 interface WorkTimeViewProps {
   tasks: Task[];
   onTaskUpdated: () => void;
+  onTaskComplete?: (taskId: string) => void;
 }
 
 function toDateStr(date: Date): string {
@@ -51,9 +52,11 @@ function getColorClass(seconds: number): string {
 const WEEKS = 10;
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
-export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps) {
+export default function WorkTimeView({ tasks, onTaskUpdated, onTaskComplete }: WorkTimeViewProps) {
   const [selectedTaskId, setSelectedTaskId] = useState<string>('');
   const [timerState, setTimerState] = useState<TimerState>('idle');
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [pendingEnd, setPendingEnd] = useState<{ endTime: Date; finalWork: number; finalBreak: number } | null>(null);
   const [workSeconds, setWorkSeconds] = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
   const [segmentStart, setSegmentStart] = useState<number | null>(null);
@@ -130,13 +133,23 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
     setTimerState('working');
   };
 
-  const handleEnd = async () => {
+  const handleEnd = () => {
     const endTime = new Date();
     const elapsed = segmentStart ? Math.floor((Date.now() - segmentStart) / 1000) : 0;
     let finalWork = workSeconds;
     let finalBreak = breakSeconds;
     if (timerState === 'working') finalWork += elapsed;
     if (timerState === 'on_break') finalBreak += elapsed;
+
+    setPendingEnd({ endTime, finalWork, finalBreak });
+    setShowCompleteModal(true);
+  };
+
+  const commitEnd = async (completeTask: boolean) => {
+    setShowCompleteModal(false);
+    if (!pendingEnd) return;
+    const { endTime, finalWork, finalBreak } = pendingEnd;
+    setPendingEnd(null);
 
     if (selectedTaskId && selectedTask && sessionStartTime) {
       const date = sessionStartTime.toISOString().slice(0, 10);
@@ -157,6 +170,10 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
         if (res) window.dispatchEvent(new CustomEvent('mascot-points-updated', { detail: { points: res.current_points } }));
       }).catch(() => {});
       onTaskUpdated();
+
+      if (completeTask && onTaskComplete) {
+        onTaskComplete(selectedTaskId);
+      }
     }
 
     setTimerState('idle');
@@ -232,12 +249,6 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
                 {formatTime(totalBreakSeconds)}
               </p>
             </div>
-          </div>
-          <div className="mt-4 pt-4 border-t border-gray-100 w-full">
-            <p className="text-xs text-gray-400 mb-1">このタスクの累計</p>
-            <p className="text-2xl xl:text-3xl font-mono font-semibold text-gray-500">
-              {formatTime(selectedTask?.totalWorkTime ?? 0)}
-            </p>
           </div>
         </div>
 
@@ -325,6 +336,40 @@ export default function WorkTimeView({ tasks, onTaskUpdated }: WorkTimeViewProps
           <Mascot mood="worktime" dialogue={dialogue} visible={visible} fit="height" />
         </div>
       </div>
+
+      {/* 作業終了確認モーダル */}
+      {showCompleteModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}
+        >
+          <div
+            className="bg-white rounded-2xl p-7 w-full max-w-sm shadow-xl flex flex-col gap-5"
+            onClick={e => e.stopPropagation()}
+          >
+            <div>
+              <p className="text-base font-semibold text-ink mb-1">お疲れさまでした！</p>
+              <p className="text-sm text-ink/60">
+                「{selectedTask?.title}」を完了しますか？
+              </p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => commitEnd(true)}
+                className="w-full py-3 rounded-xl text-sm font-bold text-white bg-green-500 hover:bg-green-600 active:scale-[0.98] transition-all"
+              >
+                完了する
+              </button>
+              <button
+                onClick={() => commitEnd(false)}
+                className="w-full py-3 rounded-xl text-sm font-medium text-ink border border-mist hover:bg-mist/50 active:scale-[0.98] transition-all"
+              >
+                まだ続けるので完了しない
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ポップアップ */}
       {selectedDate && popoverPos && (
