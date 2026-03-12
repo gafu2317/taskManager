@@ -97,7 +97,7 @@ function SubtaskCard({
       </div>
       <button
         onClick={onRemove}
-        className="opacity-0 group-hover:opacity-100 text-ink/30 hover:text-ink/60 text-xs transition-opacity shrink-0"
+        className="text-red-700 text-xs transition-colors shrink-0"
       >
         ✕
       </button>
