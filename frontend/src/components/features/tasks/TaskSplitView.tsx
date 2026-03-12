@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Reorder, useDragControls } from 'framer-motion';
 import { createTask } from '../../../lib/api';
+import { getCostColor } from '../../../utils/taskUtils';
 
 interface SubTaskDraft {
   id: string;
@@ -33,10 +34,45 @@ function SubtaskCard({
   const controls = useDragControls();
   const [isDragging, setIsDragging] = useState(false);
   const [displayIndex, setDisplayIndex] = useState(index);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggesting, setSuggesting] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!anyDragging) setDisplayIndex(index);
   }, [index, anyDragging]);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (subtask.title.trim().length < 3) { setSuggestions([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setSuggesting(true);
+      try {
+        const res = await fetch('/api/suggest-tags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: subtask.title, description: subtask.description }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSuggestions((data.tags as string[]).filter(t => !subtask.tags.includes(t)));
+        }
+      } catch { /* 無視 */ } finally { setSuggesting(false); }
+    }, 1500);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtask.title, subtask.description]);
+
+  const handleTagAdd = (tag: string) => {
+    if (!subtask.tags.includes(tag)) {
+      onChange('tags', [...subtask.tags, tag]);
+      setSuggestions(prev => prev.filter(s => s !== tag));
+    }
+  };
+
+  const handleTagRemove = (tag: string) => {
+    onChange('tags', subtask.tags.filter(t => t !== tag));
+  };
 
   return (
     <Reorder.Item
@@ -66,15 +102,16 @@ function SubtaskCard({
           placeholder="タイトル"
           className="w-full text-sm text-ink bg-transparent focus:outline-none border-b border-transparent focus:border-mist"
         />
-        <div className="flex items-center gap-3 text-xs text-ink/40">
+        <div className="flex items-center gap-3 text-xs text-ink/70">
           <input
             value={subtask.description}
             onChange={e => onChange('description', e.target.value)}
             placeholder="説明（任意）"
-            className="flex-1 bg-transparent focus:outline-none text-ink/50 min-w-0"
+            className="flex-1 bg-transparent focus:outline-none text-ink/70 min-w-0"
           />
-          <label className="shrink-0 flex items-center gap-0.5">
-            ★
+          <label className="shrink-0 flex items-center gap-1">
+            <span className="text-ink/60">重要度</span>
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: getCostColor(subtask.importance) }} />
             <select
               value={subtask.importance}
               onChange={e => onChange('importance', Number(e.target.value))}
@@ -83,8 +120,9 @@ function SubtaskCard({
               {[1,2,3,4,5].map(v => <option key={v} value={v}>{v}</option>)}
             </select>
           </label>
-          <label className="shrink-0 flex items-center gap-0.5">
-            ⏱
+          <label className="shrink-0 flex items-center gap-1">
+            <span className="text-ink/60">コスト</span>
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: getCostColor(subtask.cost) }} />
             <select
               value={subtask.cost}
               onChange={e => onChange('cost', Number(e.target.value))}
@@ -94,6 +132,33 @@ function SubtaskCard({
             </select>
           </label>
         </div>
+        {/* 確定タグ */}
+        {subtask.tags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-xs text-ink/50 shrink-0">タグ</span>
+            {subtask.tags.map(tag => (
+              <span key={tag} className="inline-flex items-center gap-0.5 text-xs bg-sage text-ink px-1.5 py-0.5 rounded">
+                {tag}
+                <button onClick={() => handleTagRemove(tag)} className="text-ink/60 hover:text-red-400 transition-colors leading-none">×</button>
+              </span>
+            ))}
+          </div>
+        )}
+        {/* 提案タグ */}
+        {(suggesting || suggestions.length > 0) && (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-xs text-ink/50 shrink-0">{suggesting ? '提案中...' : '提案'}</span>
+            {!suggesting && suggestions.map(tag => (
+              <button
+                key={tag}
+                onClick={() => handleTagAdd(tag)}
+                className="text-xs px-1.5 py-0.5 rounded border border-dashed border-aqua/60 text-aqua hover:bg-aqua/10 transition-colors"
+              >
+                + {tag}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <button
         onClick={onRemove}
@@ -332,7 +397,7 @@ export default function TaskSplitView({ onSplitComplete }: TaskSplitViewProps) {
                 disabled={isConfirming || validCount === 0}
                 className="text-sm bg-aqua text-white px-5 py-2 rounded hover:bg-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isConfirming ? '処理中...' : `${validCount}件を登録する`}
+                {isConfirming ? '処理中...' : `${subtasks.length}件を登録する`}
               </button>
             </div>
           </>

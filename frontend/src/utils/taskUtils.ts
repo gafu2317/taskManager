@@ -12,7 +12,7 @@ export const getTaskBubbleRadius = (cost: number, containerWidth: number = REFER
 export const getCostColor = (cost: number): string => {
   const colors = {
     1: '#3B82F6', // 青（Blue-500）
-    2: '#10B981', // 緑（Green-500） 
+    2: '#10B981', // 緑（Green-500）
     3: '#FDE047', // 明るい黄色（Yellow-300）
     4: '#F97316', // オレンジ（Orange-500）
     5: '#EF4444'  // 赤（Red-500）
