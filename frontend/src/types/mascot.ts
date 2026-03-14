@@ -1,11 +1,12 @@
-export type MascotMood = 'tasks' | 'inbox' | 'worktime' | 'mascot';
+export type MascotMood = 'tasks' | 'inbox' | 'worktime' | 'mascot' | 'habits';
 
 export type MascotEvent =
   | 'task_created' | 'task_completed'
   | 'work_started' | 'work_ended' | 'work_long'
   | 'inbox_added' | 'inbox_empty'
   | 'time_morning' | 'time_night'
-  | 'idle' | 'points_gained';
+  | 'idle' | 'points_gained'
+  | 'habit_complete_mini' | 'habit_complete_full' | 'habit_streak_7' | 'habit_graduated';
 
 export type PersonalityPresetId =
   | 'flat' | 'genki' | 'amaenbou' | 'tennen'

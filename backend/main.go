@@ -734,6 +734,184 @@ func postMascotUnlock(mascotRepo *repository.MascotRepository) gin.HandlerFunc {
 	}
 }
 
+func createHabit(habitRepo *repository.HabitRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		var habit models.Habit
+		if err := c.ShouldBindJSON(&habit); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if habit.Title == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "title is required"})
+			return
+		}
+
+		habit.ID = fmt.Sprintf("%d", time.Now().UnixNano())
+		habit.UserID = userID
+		habit.CreatedAt = time.Now()
+		habit.UpdatedAt = time.Now()
+
+		if err := habitRepo.CreateHabit(context.TODO(), userID, &habit); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create habit"})
+			return
+		}
+
+		c.JSON(http.StatusCreated, habit)
+	}
+}
+
+func getHabits(habitRepo *repository.HabitRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		habits, err := habitRepo.GetHabits(context.TODO(), userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get habits"})
+			return
+		}
+		if habits == nil {
+			habits = []models.Habit{}
+		}
+
+		c.JSON(http.StatusOK, gin.H{"habits": habits, "count": len(habits)})
+	}
+}
+
+func deleteHabit(habitRepo *repository.HabitRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		id := c.Param("id")
+		if err := habitRepo.DeleteHabit(context.TODO(), userID, id); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete habit"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "deleted", "id": id})
+	}
+}
+
+func graduateHabit(habitRepo *repository.HabitRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		id := c.Param("id")
+
+		var req struct {
+			PeakStreak  int    `json:"peak_streak"`
+			GraduatedAt string `json:"graduated_at"`
+		}
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		habit, err := habitRepo.GetHabit(context.TODO(), userID, id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get habit"})
+			return
+		}
+		if habit == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Habit not found"})
+			return
+		}
+
+		habit.Graduated = true
+		habit.GraduatedAt = req.GraduatedAt
+		habit.PeakStreak = req.PeakStreak
+		habit.UpdatedAt = time.Now()
+
+		if err := habitRepo.UpdateHabit(context.TODO(), userID, habit); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to graduate habit"})
+			return
+		}
+
+		c.JSON(http.StatusOK, habit)
+	}
+}
+
+func createHabitRecord(habitRepo *repository.HabitRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		var record models.HabitRecord
+		if err := c.ShouldBindJSON(&record); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if record.HabitID == "" || record.Date == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "habit_id and date are required"})
+			return
+		}
+		if record.Completed != "mini" && record.Completed != "full" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "completed must be 'mini' or 'full'"})
+			return
+		}
+
+		record.ID = fmt.Sprintf("%d", time.Now().UnixNano())
+		record.CreatedAt = time.Now()
+
+		if err := habitRepo.UpsertHabitRecord(context.TODO(), userID, &record); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save habit record"})
+			return
+		}
+
+		c.JSON(http.StatusCreated, record)
+	}
+}
+
+func getHabitRecords(habitRepo *repository.HabitRepository) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userID := c.GetHeader("X-User-ID")
+		if userID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "X-User-ID header is required"})
+			return
+		}
+
+		habitID := c.Query("habit_id")
+		if habitID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "habit_id query param is required"})
+			return
+		}
+
+		dateFrom := c.Query("date_from")
+		dateTo := c.Query("date_to")
+
+		records, err := habitRepo.GetHabitRecords(context.TODO(), userID, habitID, dateFrom, dateTo)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get habit records"})
+			return
+		}
+		if records == nil {
+			records = []models.HabitRecord{}
+		}
+
+		c.JSON(http.StatusOK, gin.H{"records": records, "count": len(records)})
+	}
+}
+
 func healthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "ok",
@@ -753,6 +931,7 @@ func main() {
 	sessionRepo := repository.NewSessionRepository(dbClient.Client, tableName)
 	bgmRepo := repository.NewBGMRepository(dbClient.Client, tableName)
 	mascotRepo := repository.NewMascotRepository(dbClient.Client, tableName)
+	habitRepo := repository.NewHabitRepository(dbClient.Client, tableName)
 
 	r := gin.Default()
 
@@ -786,6 +965,12 @@ func main() {
 	r.POST("/mascot/shop/buy", postMascotShopBuy(mascotRepo))
 	r.PUT("/mascot/equip", putMascotEquip(mascotRepo))
 	r.POST("/mascot/unlock", postMascotUnlock(mascotRepo))
+	r.POST("/habits", createHabit(habitRepo))
+	r.GET("/habits", getHabits(habitRepo))
+	r.DELETE("/habit/:id", deleteHabit(habitRepo))
+	r.PUT("/habit/:id/graduate", graduateHabit(habitRepo))
+	r.POST("/habit-records", createHabitRecord(habitRepo))
+	r.GET("/habit-records", getHabitRecords(habitRepo))
 
 	port := os.Getenv("PORT")
 	if port == "" {

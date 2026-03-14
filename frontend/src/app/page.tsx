@@ -16,6 +16,7 @@ import Mascot from "@/components/features/mascot/Mascot";
 import MascotView from "@/components/features/mascot/MascotView";
 import InboxView from "@/components/features/inbox/InboxView";
 import TaskSplitView from "@/components/features/tasks/TaskSplitView";
+import HabitView from "@/components/features/habits/HabitView";
 import { useTaskFilter } from "../hooks/useTaskFilter";
 import { useMascot, fireMascotEvent } from "../hooks/useMascot";
 
@@ -29,7 +30,7 @@ export default function Home() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRegisterPromptDismissed, setIsRegisterPromptDismissed] = useState(false);
   const [showRegisterPopup, setShowRegisterPopup] = useState(false);
-  const [activeTab, setActiveTab] = useState<'tasks' | 'worktime' | 'mascot' | 'inbox' | 'split'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'worktime' | 'mascot' | 'inbox' | 'split' | 'habits'>('tasks');
   const bubbleAreaRef = useRef<HTMLDivElement>(null);
   const {taskFilter, filteredTasks, handleFilterChange, availableTags} = useTaskFilter(tasks);
   const { dialogue, visible } = useMascot('tasks');
@@ -196,6 +197,7 @@ export default function Home() {
           { key: 'worktime', label: '作業時間記録',   icon: '⏱' },
           { key: 'mascot',   label: 'キャラクター',   icon: '🐱' },
           { key: 'split',    label: 'タスク分割',     icon: '✂️' },
+          { key: 'habits',   label: '習慣化',         icon: '🌱' },
         ] as const).map(({ key, label, icon }) => (
           <button
             key={key}
@@ -280,6 +282,11 @@ export default function Home() {
         <TaskSplitView
           onSplitComplete={handleTaskUpdated}
         />
+      </div>
+
+      {/* 習慣化タブ */}
+      <div className={activeTab === 'habits' ? 'flex flex-1 min-h-0' : 'hidden'}>
+        <HabitView />
       </div>
 
       {/* タスク編集モーダル */}

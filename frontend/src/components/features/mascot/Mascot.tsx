@@ -6,6 +6,7 @@ const moodImages: Record<MascotMood, string> = {
   inbox:   '/mascot/idle.png',
   worktime: '/mascot/working.png',
   mascot:  '/mascot/happy.png',
+  habits:  '/mascot/happy.png',
 };
 
 interface MascotProps {

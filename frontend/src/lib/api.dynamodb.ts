@@ -2,6 +2,7 @@ import { Task } from '../types/task';
 import { WorkSession } from '../types/session';
 import { BGMPreset } from '../types/bgmPreset';
 import { MascotData } from '../types/mascot';
+import { Habit, HabitRecord, HabitCompletedType } from '../types/habit';
 import { getSession } from 'next-auth/react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
@@ -307,6 +308,103 @@ export async function putMascotEquip(equipped: string[], slot = 1): Promise<Masc
   });
   if (!response.ok) throw new Error('Failed to update equip');
   return response.json();
+}
+
+// 習慣API
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toHabit(h: any): Habit {
+  return {
+    id: h.id ?? '',
+    userId: h.user_id ?? h.userId ?? '',
+    title: h.title ?? '',
+    miniVersion: h.mini_version ?? h.miniVersion ?? '',
+    fullVersion: h.full_version ?? h.fullVersion ?? '',
+    graduated: h.graduated ?? false,
+    graduatedAt: h.graduated_at ?? h.graduatedAt ?? '',
+    peakStreak: h.peak_streak ?? h.peakStreak ?? 0,
+    createdAt: h.created_at ?? h.createdAt ?? '',
+    updatedAt: h.updated_at ?? h.updatedAt ?? '',
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toHabitRecord(r: any): HabitRecord {
+  return {
+    id: r.id ?? '',
+    habitId: r.habit_id ?? r.habitId ?? '',
+    date: r.date ?? '',
+    completed: r.completed ?? 'mini',
+    createdAt: r.created_at ?? r.createdAt ?? '',
+  };
+}
+
+export async function getHabits(): Promise<Habit[]> {
+  const response = await fetch(`${API_BASE_URL}/habits`, {
+    headers: await getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch habits');
+  const data: { habits: unknown[] } = await response.json();
+  return (data.habits ?? []).map(toHabit);
+}
+
+export async function createHabit(data: Pick<Habit, 'title' | 'miniVersion' | 'fullVersion'>): Promise<Habit> {
+  const response = await fetch(`${API_BASE_URL}/habits`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({
+      title: data.title,
+      mini_version: data.miniVersion,
+      full_version: data.fullVersion,
+    }),
+  });
+  if (!response.ok) throw new Error('Failed to create habit');
+  return toHabit(await response.json());
+}
+
+export async function graduateHabit(id: string, peakStreak: number): Promise<Habit> {
+  const today = new Date().toISOString().slice(0, 10);
+  const response = await fetch(`${API_BASE_URL}/habit/${id}/graduate`, {
+    method: 'PUT',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ peak_streak: peakStreak, graduated_at: today }),
+  });
+  if (!response.ok) throw new Error('Failed to graduate habit');
+  return toHabit(await response.json());
+}
+
+export async function deleteHabit(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/habit/${id}`, {
+    method: 'DELETE',
+    headers: await getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to delete habit');
+}
+
+export async function upsertHabitRecord(habitId: string, date: string, completed: HabitCompletedType): Promise<HabitRecord> {
+  const response = await fetch(`${API_BASE_URL}/habit-records`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({
+      habit_id: habitId,
+      date,
+      completed,
+    }),
+  });
+  if (!response.ok) throw new Error('Failed to upsert habit record');
+  return toHabitRecord(await response.json());
+}
+
+export async function getHabitRecords(habitId: string, dateFrom?: string, dateTo?: string): Promise<HabitRecord[]> {
+  const params = new URLSearchParams({ habit_id: habitId });
+  if (dateFrom) params.set('date_from', dateFrom);
+  if (dateTo) params.set('date_to', dateTo);
+
+  const response = await fetch(`${API_BASE_URL}/habit-records?${params.toString()}`, {
+    headers: await getAuthHeaders(),
+  });
+  if (!response.ok) throw new Error('Failed to fetch habit records');
+  const data: { records: unknown[] } = await response.json();
+  return (data.records ?? []).map(toHabitRecord);
 }
 
 // スロット解放（スロット1のポイントを消費）

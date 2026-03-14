@@ -10,6 +10,7 @@ import { Task } from '../types/task';
 import { WorkSession } from '../types/session';
 import { BGMPreset } from '../types/bgmPreset';
 import { MascotData } from '../types/mascot';
+import { Habit, HabitRecord, HabitCompletedType } from '../types/habit';
 
 interface GetTasksOptions {
   completed?: boolean;
@@ -150,4 +151,35 @@ export async function unlockMascotSlot(slot: number): Promise<MascotData> {
   const isLoggedIn = !!(session?.user && (session.user as { id?: string }).id);
   if (!isLoggedIn) return DEFAULT_MASCOT;
   return dynamoApi.unlockMascotSlot(slot);
+}
+
+// 習慣API
+export async function getHabits(): Promise<Habit[]> {
+  const api = await getApiProvider();
+  return api.getHabits();
+}
+
+export async function createHabit(data: Pick<Habit, 'title' | 'miniVersion' | 'fullVersion'>): Promise<Habit> {
+  const api = await getApiProvider();
+  return api.createHabit(data);
+}
+
+export async function deleteHabit(id: string): Promise<void> {
+  const api = await getApiProvider();
+  return api.deleteHabit(id);
+}
+
+export async function graduateHabit(id: string, peakStreak: number): Promise<Habit> {
+  const api = await getApiProvider();
+  return api.graduateHabit(id, peakStreak);
+}
+
+export async function upsertHabitRecord(habitId: string, date: string, completed: HabitCompletedType): Promise<HabitRecord> {
+  const api = await getApiProvider();
+  return api.upsertHabitRecord(habitId, date, completed);
+}
+
+export async function getHabitRecords(habitId: string, dateFrom?: string, dateTo?: string): Promise<HabitRecord[]> {
+  const api = await getApiProvider();
+  return api.getHabitRecords(habitId, dateFrom, dateTo);
 }

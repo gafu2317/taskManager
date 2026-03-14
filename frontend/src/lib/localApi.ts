@@ -1,6 +1,7 @@
 import { Task } from '../types/task';
 import { Tag } from '../types/tag';
 import { WorkSession } from '../types/session';
+import { Habit, HabitRecord, HabitCompletedType } from '../types/habit';
 import { saveTasksToLocal, loadTasksFromLocal, saveTagsToLocal, loadTagsFromLocal } from './localStorage';
 
 const SESSIONS_KEY = 'guest_sessions';
@@ -154,6 +155,116 @@ export const getSessions = async (dateFrom?: string, dateTo?: string): Promise<W
   return sessions.filter(s => {
     if (dateFrom && s.date < dateFrom) return false;
     if (dateTo && s.date > dateTo) return false;
+    return true;
+  });
+};
+
+// 習慣関連API（LocalStorage版）
+const HABITS_KEY = 'guest_habits';
+const HABIT_RECORDS_KEY = 'guest_habit_records';
+
+const loadHabitsFromLocal = (): Habit[] => {
+  try {
+    const data = localStorage.getItem(HABITS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveHabitsToLocal = (habits: Habit[]): void => {
+  try {
+    localStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+  } catch (error) {
+    console.error('Failed to save habits to localStorage:', error);
+  }
+};
+
+const loadHabitRecordsFromLocal = (): HabitRecord[] => {
+  try {
+    const data = localStorage.getItem(HABIT_RECORDS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveHabitRecordsToLocal = (records: HabitRecord[]): void => {
+  try {
+    localStorage.setItem(HABIT_RECORDS_KEY, JSON.stringify(records));
+  } catch (error) {
+    console.error('Failed to save habit records to localStorage:', error);
+  }
+};
+
+export const getHabits = async (): Promise<Habit[]> => {
+  return loadHabitsFromLocal();
+};
+
+export const createHabit = async (data: Pick<Habit, 'title' | 'miniVersion' | 'fullVersion'>): Promise<Habit> => {
+  const habits = loadHabitsFromLocal();
+  const newHabit: Habit = {
+    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+    userId: 'guest',
+    title: data.title,
+    miniVersion: data.miniVersion,
+    fullVersion: data.fullVersion,
+    graduated: false,
+    graduatedAt: '',
+    peakStreak: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  habits.push(newHabit);
+  saveHabitsToLocal(habits);
+  return newHabit;
+};
+
+export const graduateHabit = async (id: string, peakStreak: number): Promise<Habit> => {
+  const habits = loadHabitsFromLocal();
+  const idx = habits.findIndex(h => h.id === id);
+  if (idx < 0) throw new Error('Habit not found');
+  habits[idx] = {
+    ...habits[idx],
+    graduated: true,
+    graduatedAt: new Date().toISOString().slice(0, 10),
+    peakStreak,
+    updatedAt: new Date().toISOString(),
+  };
+  saveHabitsToLocal(habits);
+  return habits[idx];
+};
+
+export const deleteHabit = async (id: string): Promise<void> => {
+  const habits = loadHabitsFromLocal();
+  saveHabitsToLocal(habits.filter(h => h.id !== id));
+};
+
+export const upsertHabitRecord = async (habitId: string, date: string, completed: HabitCompletedType): Promise<HabitRecord> => {
+  const records = loadHabitRecordsFromLocal();
+  const existing = records.findIndex(r => r.habitId === habitId && r.date === date);
+  const record: HabitRecord = {
+    id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+    habitId,
+    date,
+    completed,
+    createdAt: new Date().toISOString(),
+  };
+  if (existing >= 0) {
+    records[existing] = record;
+  } else {
+    records.push(record);
+  }
+  saveHabitRecordsToLocal(records);
+  return record;
+};
+
+export const getHabitRecords = async (habitId: string, dateFrom?: string, dateTo?: string): Promise<HabitRecord[]> => {
+  const records = loadHabitRecordsFromLocal();
+  return records.filter(r => {
+    if (r.habitId !== habitId) return false;
+    if (dateFrom && r.date < dateFrom) return false;
+    if (dateTo && r.date > dateTo) return false;
     return true;
   });
 };
