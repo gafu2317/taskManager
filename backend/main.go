@@ -33,11 +33,11 @@ func createTask(taskRepo *repository.TaskRepository, tagRepo *repository.TagRepo
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Title is required"})
 			return
 		}
-		if newTask.Importance < 1 || newTask.Importance > 5 {
+		if newTask.Importance != 0 && (newTask.Importance < 1 || newTask.Importance > 5) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Importance must be between 1 and 5"})
 			return
 		}
-		if newTask.Cost < 1 || newTask.Cost > 5 {
+		if newTask.Cost != 0 && (newTask.Cost < 1 || newTask.Cost > 5) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Cost must be non-negative"})
 			return
 		}
@@ -155,6 +155,8 @@ type updateTaskRequest struct {
 	Completed      *bool    `json:"completed"`
 	TotalWorkTime  int      `json:"total_work_time"`
 	TotalBreakTime int      `json:"total_break_time"`
+	ParentID       *string  `json:"parent_id"`
+	NodeType       string   `json:"node_type"`
 }
 
 func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
@@ -206,6 +208,12 @@ func updateTask(taskRepo *repository.TaskRepository) gin.HandlerFunc {
 		}
 		if updatedData.TotalBreakTime > 0 {
 			existingTask.TotalBreakTime = updatedData.TotalBreakTime
+		}
+		if updatedData.ParentID != nil {
+			existingTask.ParentID = *updatedData.ParentID
+		}
+		if updatedData.NodeType != "" {
+			existingTask.NodeType = updatedData.NodeType
 		}
 		existingTask.UpdatedAt = time.Now()
 

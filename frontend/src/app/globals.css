@@ -1,26 +1,9 @@
 @import "tailwindcss";
 
-:root {
-  --aqua: #6E828A;
-  --ink:  #143A52;
-  --hot:  #143A52;
-  --mist: #E3EFF3;
-  --sage: #CDE3EB;
-}
-
 @theme inline {
-  --color-aqua: var(--aqua);
-  --color-ink:  var(--ink);
-  --color-hot:  var(--hot);
-  --color-mist: var(--mist);
-  --color-sage: var(--sage);
   --font-sans: var(--font-zen-kaku);
 }
 
-html,
-body {
+html, body {
   height: 100%;
-  overflow: hidden;
-  background: var(--mist);
-  color: var(--ink);
 }

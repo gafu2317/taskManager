@@ -7,6 +7,8 @@ type Task struct {
 	SK             string    `json:"-" dynamodbav:"sk"`
 	ID             string    `json:"id" dynamodbav:"id"`
 	UserID         string    `json:"user_id" dynamodbav:"user_id"`
+	ParentID       string    `json:"parent_id" dynamodbav:"parent_id"`
+	NodeType       string    `json:"node_type" dynamodbav:"node_type"` // "goal" | "task"
 	Title          string    `json:"title" dynamodbav:"title"`
 	Description    string    `json:"description" dynamodbav:"description"`
 	Completed      bool      `json:"completed" dynamodbav:"completed"`
