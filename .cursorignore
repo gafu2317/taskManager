@@ -1,0 +1,6 @@
+# .cursorignore
+**/.env
+**/.env.*
+**/*secret*
+**/*secrets*
+**/credentials*

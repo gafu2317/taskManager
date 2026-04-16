@@ -26,7 +26,7 @@ function toTask(t: any): Task {
     completed:      t.completed ?? false,
     importance:     t.importance ?? 0,
     cost:           t.cost ?? 0,
-    tags:           t.tags ?? [],
+
     createdAt:      t.created_at ?? t.createdAt ?? '',
     updatedAt:      t.updated_at ?? t.updatedAt ?? '',
   };

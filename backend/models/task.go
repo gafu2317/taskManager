@@ -14,7 +14,7 @@ type Task struct {
 	Completed      bool      `json:"completed" dynamodbav:"completed"`
 	Importance     int       `json:"importance" dynamodbav:"importance"`
 	Cost           int       `json:"cost" dynamodbav:"cost"`
-	Tags           []string  `json:"tags" dynamodbav:"tags"`
+
 	TotalWorkTime  int       `json:"total_work_time" dynamodbav:"total_work_time"`
 	TotalBreakTime int       `json:"total_break_time" dynamodbav:"total_break_time"`
 	CreatedAt      time.Time `json:"created_at" dynamodbav:"created_at"`

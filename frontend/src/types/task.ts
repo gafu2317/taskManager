@@ -10,7 +10,7 @@ export type Task = {
   completed: boolean;
   importance: number;
   cost: number;
-  tags: string[];
+
   totalWorkTime?: number;
   totalBreakTime?: number;
   createdAt: string;
